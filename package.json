@@ -47,6 +47,7 @@
     "cmdk": "^1.0.0",
     "date-fns": "^3.6.0",
     "devextreme": "^23.2.4",
+    "devextreme-aspnet-data-nojquery": "^5.0.0-beta",
     "devextreme-react": "^23.2.4",
     "embla-carousel-react": "^8.3.0",
     "eslint": "8.49.0",

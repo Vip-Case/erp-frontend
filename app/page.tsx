@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import Sidebar from '@/components/Sidebar';
+import StockList from '@/components/StockList';
 import TabContainer from '@/components/TabContainer';
 import { Button } from '@/components/ui/button';
 import { Menu, Bell, ChevronDown, LogOut, User } from 'lucide-react';
@@ -128,7 +128,9 @@ export default function Home() {
             onTabChange={setActiveTab}
             onCloseTab={handleCloseTab}
             sidebarCollapsed={isSidebarCollapsed}
-          />
+          >
+            {activeTab === 'Stok Listesi' && <StockList />}
+          </TabContainer>
         </main>
       </div>
     </div>

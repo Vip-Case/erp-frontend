@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, ReactNode } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { X } from 'lucide-react';
 import Image from 'next/image';
@@ -11,6 +11,7 @@ interface TabContainerProps {
   onTabChange: (tabName: string) => void;
   onCloseTab: (tabName: string) => void;
   sidebarCollapsed: boolean;
+  children: ReactNode;
 }
 
 const TabContainer: React.FC<TabContainerProps> = ({
@@ -19,6 +20,7 @@ const TabContainer: React.FC<TabContainerProps> = ({
   onTabChange,
   onCloseTab,
   sidebarCollapsed,
+  children
 }) => {
   const [tabsHeight, setTabsHeight] = useState(0);
   const tabsListRef = useRef<HTMLDivElement>(null);
@@ -101,14 +103,7 @@ const TabContainer: React.FC<TabContainerProps> = ({
               </div>
             </div>
           ) : (
-            tabs.map((tab) => (
-              <TabsContent key={tab} value={tab} className="h-full">
-                <div className="p-6 space-y-4">
-                  <h2 className="text-2xl font-bold">{tab}</h2>
-                  <p className="text-muted-foreground">Content for {tab} goes here.</p>
-                </div>
-              </TabsContent>
-            ))
+            children
           )}
         </div>
       </Tabs>
