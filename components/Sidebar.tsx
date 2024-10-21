@@ -19,7 +19,6 @@ import {
   BarChart2,
   Settings,
   Server,
-  Circle,
   File,
 } from 'lucide-react';
 
@@ -177,13 +176,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onMenuItemClick }) => {
 
   return (
     <aside
-      className={`bg-[#0A2647] text-white transition-all duration-300 ease-in-out ${
+      className={`bg-sidebar-bg text-sidebar-text transition-all duration-300 ease-in-out ${
         isCollapsed ? 'w-16' : 'w-64'
       }`}
     >
       <div className="p-4 flex justify-center items-center">
         <Image
-          src="/logo-light.svg"
+          src={logoSrc}
           alt="Logo"
           width={isCollapsed ? 64 : 240}
           height={isCollapsed ? 32 : 40}
@@ -195,7 +194,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onMenuItemClick }) => {
             <div key={item.name} className="mb-1">
               <Button
                 variant="ghost"
-                className={`w-full justify-start text-sm text-white hover:bg-[#144272] ${
+                className={`w-full justify-start text-sm text-sidebar-text hover:bg-sidebar-hover ${
                   isCollapsed ? 'px-2' : 'px-3'
                 }`}
                 onClick={() => {
@@ -230,7 +229,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onMenuItemClick }) => {
                       <Button
                         key={subItem}
                         variant="ghost"
-                        className="w-full justify-start text-sm py-1 px-2 mb-1 text-white hover:bg-[#144272]"
+                        className="w-full justify-start text-sm py-1 px-2 mb-1 text-sidebar-text hover:bg-sidebar-hover"
                         onClick={() => onMenuItemClick(subItem)}
                       >
                         <span className="truncate">{subItem}</span>

@@ -33,41 +33,41 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-screen bg-[#F1F6F9]">
+    <div className="flex h-screen bg-sidebar-bg">
       <Sidebar
         isCollapsed={isSidebarCollapsed}
         onMenuItemClick={handleMenuItemClick}
       />
       <div className="flex flex-col flex-grow">
-        <header className="bg-[#0A2647] text-white p-2 flex items-center justify-between">
+        <header className="bg-sidebar-bg text-sidebar-text p-2 flex items-center justify-between">
           <div className="flex items-center">
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleSidebar}
-              className="mr-2 text-white hover:bg-[#144272]"
+              className="mr-2 text-sidebar-text hover:bg-sidebar-hover"
             >
               <Menu className="h-6 w-6" />
             </Button>
           </div>
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2 text-sm">
-              <span className="text-green-400">₺ 34,2401</span>
-              <span className="text-red-400">€ 37,1289</span>
+              <span className="text-green-600">₺ 34,2401</span>
+              <span className="text-red-600">€ 37,1289</span>
             </div>
-            <Button variant="ghost" size="icon" className="text-white hover:bg-[#144272]">
+            <Button variant="ghost" size="icon" className="text-sidebar-text hover:bg-sidebar-hover">
               <Bell className="h-5 w-5" />
             </Button>
             <div className="flex items-center">
               <ThemeToggle />
-              <Button variant="ghost" className="text-white hover:bg-[#144272]">
+              <Button variant="ghost" className="text-sidebar-text hover:bg-sidebar-hover">
                 <span className="mr-2">MN</span>
                 <ChevronDown className="h-4 w-4" />
               </Button>
             </div>
           </div>
         </header>
-        <main className="flex-grow overflow-hidden">
+        <main className="flex-grow overflow-hidden bg-main-bg rounded-tl-3xl">
           {openTabs.length === 0 ? (
             <div className="h-full flex items-center justify-center">
               <div className="text-center">
