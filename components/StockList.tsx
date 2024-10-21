@@ -60,12 +60,12 @@ const saleAmountEditorOptions = {
   },
 };
 
-const filterBuilderPopupPosition = {
+const filterBuilderPopupPosition = typeof window !== 'undefined' ? {
   of: window,
   at: 'top' as const,
   my: 'top' as const,
   offset: { y: 10 },
-};
+} : undefined;
 
 const filterBuilder = {
   customOperations: [
@@ -78,11 +78,9 @@ const filterBuilder = {
       calculateFilterExpression: () => [
         ['OrderDate', '=', 0],
         'or',
-        ['OrderDate', '=', 6],
       ],
     },
   ],
-  allowHierarchicalFields: true,
 };
 
 const filterValue = [
