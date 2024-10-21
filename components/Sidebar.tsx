@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
+import { useTheme } from "next-themes";
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
@@ -17,6 +19,7 @@ import {
   BarChart2,
   Settings,
   Server,
+  Circle,
   File,
 } from 'lucide-react';
 
@@ -160,6 +163,7 @@ const menuItems = [
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onMenuItemClick }) => {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const { theme } = useTheme();
 
   const toggleExpand = (itemName: string) => {
     setExpandedItems((prev) =>
@@ -169,19 +173,29 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onMenuItemClick }) => {
     );
   };
 
+  const logoSrc = theme === 'dark' ? '/logo-light.svg' : '/logo-dark.svg';
+
   return (
     <aside
-      className={`bg-card text-card-foreground transition-all duration-300 ease-in-out ${
+      className={`bg-[#0A2647] text-white transition-all duration-300 ease-in-out ${
         isCollapsed ? 'w-16' : 'w-64'
       }`}
     >
-      <ScrollArea className="h-[calc(100vh-4rem)]">
+      <div className="p-4 flex justify-center items-center">
+        <Image
+          src="/logo-light.svg"
+          alt="Logo"
+          width={isCollapsed ? 64 : 240}
+          height={isCollapsed ? 32 : 40}
+        />
+      </div>
+      <ScrollArea className="h-[calc(100vh-4rem-64px)]">
         <nav className="p-2">
           {menuItems.map((item) => (
             <div key={item.name} className="mb-1">
               <Button
                 variant="ghost"
-                className={`w-full justify-start text-sm ${
+                className={`w-full justify-start text-sm text-white hover:bg-[#144272] ${
                   isCollapsed ? 'px-2' : 'px-3'
                 }`}
                 onClick={() => {
@@ -216,7 +230,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onMenuItemClick }) => {
                       <Button
                         key={subItem}
                         variant="ghost"
-                        className="w-full justify-start text-sm py-1 px-2 mb-1"
+                        className="w-full justify-start text-sm py-1 px-2 mb-1 text-white hover:bg-[#144272]"
                         onClick={() => onMenuItemClick(subItem)}
                       >
                         <span className="truncate">{subItem}</span>

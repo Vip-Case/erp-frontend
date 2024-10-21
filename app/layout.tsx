@@ -1,13 +1,14 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeProvider } from '@/components/theme-provider';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Next.js DevExtreme App',
-  description: 'A web application with sidebar and tabs using Next.js and DevExtreme',
+  description:
+    'A web application with sidebar and tabs using Next.js and DevExtreme',
 };
 
 export default function RootLayout({
