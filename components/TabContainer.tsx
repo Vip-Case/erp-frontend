@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, ReactNode } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Card } from '@/components/ui/card';
 import { X } from 'lucide-react';
 import Image from 'next/image';
 
@@ -61,11 +62,11 @@ const TabContainer: React.FC<TabContainerProps> = ({
   }, [tabs]);
 
   return (
-    <div ref={containerRef} className="h-full flex flex-col relative">
+    <div ref={containerRef} className="h-full flex flex-col relative p-4">
       <Tabs value={activeTab || undefined} onValueChange={onTabChange} className="flex-grow flex flex-col">
         <div 
           ref={tabsListRef} 
-          className="w-full border-b bg-muted absolute top-0 left-0 z-10 overflow-hidden transition-all duration-300 ease-in-out"
+          className="w-full border-b bg-muted absolute top-4 left-4 right-4 z-10 overflow-hidden transition-all duration-300 ease-in-out rounded-t-lg"
         >
           <TabsList className="flex flex-wrap items-start justify-start p-0 bg-muted">
             {tabs.map((tab) => (
@@ -89,22 +90,24 @@ const TabContainer: React.FC<TabContainerProps> = ({
           </TabsList>
         </div>
         <div className="flex-grow overflow-auto tab-content">
-          {tabs.length === 0 ? (
-            <div className="h-full flex items-center justify-center p-6">
-              <div className="text-center">
-                <Image
-                  src="/home.svg"
-                  alt="Placeholder"
-                  width={400}
-                  height={400}
-                  className="mx-auto mb-4"
-                />
-                <p className="text-muted-foreground">Menüden istediğiniz formu seçerek işlemlerinize başlayabilirsiniz.</p>
+          <Card className="mt-4 p-6">
+            {tabs.length === 0 ? (
+              <div className="h-full flex items-center justify-center">
+                <div className="text-center">
+                  <Image
+                    src="/home.svg"
+                    alt="Placeholder"
+                    width={400}
+                    height={400}
+                    className="mx-auto mb-4"
+                  />
+                  <p className="text-muted-foreground">Menüden istediğiniz formu seçerek işlemlerinize başlayabilirsiniz.</p>
+                </div>
               </div>
-            </div>
-          ) : (
-            children
-          )}
+            ) : (
+              children
+            )}
+          </Card>
         </div>
       </Tabs>
     </div>

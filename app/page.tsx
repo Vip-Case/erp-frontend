@@ -48,7 +48,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen bg-sidebar-bg">
       <Sidebar
         isCollapsed={isSidebarCollapsed}
         onMenuItemClick={handleMenuItemClick}
