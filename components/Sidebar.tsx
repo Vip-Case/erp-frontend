@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useTheme } from "next-themes";
 import { Button } from '@/components/ui/button';
@@ -162,7 +162,12 @@ const menuItems = [
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onMenuItemClick }) => {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const toggleExpand = (itemName: string) => {
     setExpandedItems((prev) =>
@@ -172,7 +177,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onMenuItemClick }) => {
     );
   };
 
-  const logoSrc = theme === 'dark' ? '/logo-light.svg' : '/logo-dark.svg';
+  const logoSrc = mounted && (theme === 'dark' || resolvedTheme === 'dark') ? '/logo-light.svg' : '/logo-dark.svg';
+
+  if (!mounted) {
+    return null; // or a loading placeholder
+  }
 
   return (
     <aside

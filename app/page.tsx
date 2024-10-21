@@ -5,13 +5,28 @@ import Image from 'next/image';
 import Sidebar from '@/components/Sidebar';
 import TabContainer from '@/components/TabContainer';
 import { Button } from '@/components/ui/button';
-import { Menu, Bell, ChevronDown } from 'lucide-react';
+import { Menu, Bell, ChevronDown, LogOut, User } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 
 export default function Home() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [openTabs, setOpenTabs] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string | null>(null);
+  const [notifications, setNotifications] = useState([
+    { id: 1, message: "Yeni bir bildirim var" },
+    { id: 2, message: "Önemli güncelleme mevcut" },
+  ]);
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
@@ -33,7 +48,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-screen bg-sidebar-bg">
+    <div className="flex h-screen bg-background">
       <Sidebar
         isCollapsed={isSidebarCollapsed}
         onMenuItemClick={handleMenuItemClick}
@@ -55,41 +70,65 @@ export default function Home() {
               <span className="text-green-600">₺ 34,2401</span>
               <span className="text-red-600">€ 37,1289</span>
             </div>
-            <Button variant="ghost" size="icon" className="text-sidebar-text hover:bg-sidebar-hover">
-              <Bell className="h-5 w-5" />
-            </Button>
+            <ThemeToggle />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-sidebar-text hover:bg-sidebar-hover relative">
+                  <Bell className="h-5 w-5" />
+                  {notifications.length > 0 && (
+                    <span className="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full"></span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80">
+                <div className="grid gap-4">
+                  <div className="space-y-2">
+                    <h4 className="font-medium leading-none">Bildirimler</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Son bildirimleriniz burada görüntülenir.
+                    </p>
+                  </div>
+                  <div className="grid gap-2">
+                    {notifications.map((notification) => (
+                      <div key={notification.id} className="flex items-center space-x-2">
+                        <Bell className="h-4 w-4" />
+                        <span className="text-sm">{notification.message}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
             <div className="flex items-center">
-              <ThemeToggle />
-              <Button variant="ghost" className="text-sidebar-text hover:bg-sidebar-hover">
-                <span className="mr-2">MN</span>
-                <ChevronDown className="h-4 w-4" />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="text-sidebar-text hover:bg-sidebar-hover border border-sidebar-text">
+                    <span className="mr-2">MN</span>
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profil</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Çıkış Yap</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </header>
-        <main className="flex-grow overflow-hidden bg-main-bg rounded-tl-3xl">
-          {openTabs.length === 0 ? (
-            <div className="h-full flex items-center justify-center">
-              <div className="text-center">
-                <Image
-                  src="/home.svg"
-                  alt="Placeholder"
-                  width={400}
-                  height={400}
-                  className="mx-auto mb-4"
-                />
-                <p className="text-gray-500">Menüden istediğiniz formu seçerek işlemlerinize başlayabilirsiniz.</p>
-              </div>
-            </div>
-          ) : (
-            <TabContainer
-              tabs={openTabs}
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
-              onCloseTab={handleCloseTab}
-              sidebarCollapsed={isSidebarCollapsed}
-            />
-          )}
+        <main className="flex-grow overflow-hidden bg-background rounded-tl-3xl">
+          <TabContainer
+            tabs={openTabs}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            onCloseTab={handleCloseTab}
+            sidebarCollapsed={isSidebarCollapsed}
+          />
         </main>
       </div>
     </div>
