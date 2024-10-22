@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Sidebar from '@/components/Sidebar';
 import StockList from '@/components/StockList';
+import StockForm from '@/components/StockForm';
 import TabContainer from '@/components/TabContainer';
 import { Button } from '@/components/ui/button';
 import { Menu, Bell, ChevronDown, LogOut, User } from 'lucide-react';
@@ -130,6 +131,7 @@ export default function Home() {
             sidebarCollapsed={isSidebarCollapsed}
           >
             {activeTab === 'Stok Listesi' && <StockList />}
+            {activeTab === 'Stok Formu' && <StockForm />}
           </TabContainer>
         </main>
       </div>
