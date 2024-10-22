@@ -4,7 +4,6 @@ import DataGrid, {
   Column,
   Export,
   Selection,
-  DataGridTypes,
   FilterRow,
   HeaderFilter,
   FilterPanel,
@@ -25,8 +24,8 @@ import DataGrid, {
   ColumnChooserSearch,
   ColumnChooserSelection,
   Position,
+  DataGridTypes,
 } from 'devextreme-react/data-grid';
-import { ColumnResizeMode } from 'devextreme-react/common/grids';
 import { Workbook } from 'exceljs';
 import { saveAs } from 'file-saver-es';
 import { exportDataGrid } from 'devextreme/excel_exporter';
@@ -50,35 +49,19 @@ const onExporting = (e: DataGridTypes.ExportingEvent) => {
   });
 };
 
-const dataSource = createStore({
-  key: 'OrderID',
-  loadUrl: `${url}/Orders`,
-  insertUrl: `${url}/InsertOrder`,
-  updateUrl: `${url}/UpdateOrder`,
-  deleteUrl: `${url}/DeleteOrder`,
+const createDataSource = (key: string, loadUrl: string) => createStore({
+  key,
+  loadUrl,
   onBeforeSend: (method, ajaxOptions) => {
     ajaxOptions.xhrFields = { withCredentials: true };
   },
 });
 
-const customersData = createStore({
-  key: 'Value',
-  loadUrl: `${url}/CustomersLookup`,
-  onBeforeSend: (method, ajaxOptions) => {
-    ajaxOptions.xhrFields = { withCredentials: true };
-  },
-});
-
-const shippersData = createStore({
-  key: 'Value',
-  loadUrl: `${url}/ShippersLookup`,
-  onBeforeSend: (method, ajaxOptions) => {
-    ajaxOptions.xhrFields = { withCredentials: true };
-  },
-});
+const dataSource = createDataSource('OrderID', `${url}/Orders`);
+const customersData = createDataSource('Value', `${url}/CustomersLookup`);
+const shippersData = createDataSource('Value', `${url}/ShippersLookup`);
 
 const searchEditorOptions = { placeholder: 'Search column' };
-
 
 const filterBuilderPopupPosition = typeof window !== 'undefined' ? {
   of: window,
@@ -127,70 +110,36 @@ const App = () => (
     allowColumnReordering={true}
   >
     <Selection mode="multiple" />
-    <ColumnChooser
-          height='340px'
-          enabled={true}
-          mode='select'
-        >
-          <Position
-            my="right top"
-            at="right bottom"
-            of=".dx-datagrid-column-chooser-button"
-          />
-
-          <ColumnChooserSearch
-            enabled={true}
-            editorOptions={searchEditorOptions} />
-
-          <ColumnChooserSelection
-            allowSelectAll={true}
-            selectByClick={true}
-            recursive={true} />
-        </ColumnChooser>
-    {/* Master-Detail */}
+    <ColumnChooser height='340px' enabled={true} mode='select'>
+      <Position my="right top" at="right bottom" of=".dx-datagrid-column-chooser-button" />
+      <ColumnChooserSearch enabled={true} editorOptions={searchEditorOptions} />
+      <ColumnChooserSelection allowSelectAll={true} selectByClick={true} recursive={true} />
+    </ColumnChooser>
     <MasterDetail enabled={true} component={MasterDetailGrid} />
-
-    {/* Filtreler */}
     <FilterRow visible={true} />
     <HeaderFilter visible={true} />
     <FilterPanel visible={true} />
     <FilterBuilderPopup position={filterBuilderPopupPosition} />
-
-    {/* Gruplama ve Düzenleme */}
     <GroupPanel visible={true} />
     <Grouping autoExpandAll={false} />
-
-    {/* Sütunlar */}
     <Column dataField="OrderID" caption="Order ID" dataType="number" />
     <Column dataField="OrderDate" dataType="date">
       <RequiredRule message="The OrderDate field is required." />
     </Column>
     <Column dataField="CustomerID" caption="Customer">
       <Lookup dataSource={customersData} valueExpr="Value" displayExpr="Text" />
-      <StringLengthRule
-        max={5}
-        message="The field Customer must be a string with a maximum length of 5."
-      />
+      <StringLengthRule max={5} message="The field Customer must be a string with a maximum length of 5." />
     </Column>
     <Column dataField="Freight">
       <HeaderFilter groupInterval={100} />
-      <RangeRule
-        min={0}
-        max={2000}
-        message="The field Freight must be between 0 and 2000."
-      />
+      <RangeRule min={0} max={2000} message="The field Freight must be between 0 and 2000." />
     </Column>
     <Column dataField="ShipCountry" caption="Ship Country" dataType="string">
-      <StringLengthRule
-        max={15}
-        message="The field ShipCountry must be a string with a maximum length of 15."
-      />
+      <StringLengthRule max={15} message="The field ShipCountry must be a string with a maximum length of 15." />
     </Column>
     <Column dataField="ShipVia" caption="Shipping Company" dataType="number">
       <Lookup dataSource={shippersData} valueExpr="Value" displayExpr="Text" />
     </Column>
-
-    {/* Toplam Bilgisi */}
     <Summary>
       <TotalItem column="Freight" summaryType="sum">
         <ValueFormat type="decimal" precision={2} />
@@ -200,8 +149,6 @@ const App = () => (
       </GroupItem>
       <GroupItem summaryType="count" />
     </Summary>
-
-    {/* Kaydırma */}
     <Scrolling mode="virtual" />
     <Export enabled={true} allowExportSelectedData={true} />
   </DataGrid>
