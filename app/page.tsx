@@ -122,7 +122,7 @@ export default function Home() {
             </div>
           </div>
         </header>
-        <main className="flex-grow overflow-hidden bg-background rounded-tl-3xl">
+        <main className="flex-grow overflow-auto bg-background rounded-tl-3xl">
           <TabContainer
             tabs={openTabs}
             activeTab={activeTab}

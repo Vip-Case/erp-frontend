@@ -66,7 +66,7 @@ const TabContainer: React.FC<TabContainerProps> = ({
       <Tabs value={activeTab || undefined} onValueChange={onTabChange} className="flex-grow flex flex-col">
         <div 
           ref={tabsListRef} 
-          className="w-full border-b bg-muted absolute top-4 left-4 right-4 z-10 overflow-hidden transition-all duration-300 ease-in-out rounded-t-lg"
+          className="w-full border-b bg-muted sticky top-0 z-10 absolute top-4 left-4 right-4 z-10 overflow-hidden transition-all duration-300 ease-in-out rounded-t-lg"
           style={{
             width: 'calc(100% - 2rem)', // Card ile aynı genişlikte olması için
           }}
