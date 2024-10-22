@@ -6,7 +6,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Next.js DevExtreme App',
+  title: 'VipCase ERP',
   description:
     'A web application with sidebar and tabs using Next.js and DevExtreme',
 };

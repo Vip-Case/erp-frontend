@@ -2,13 +2,15 @@
 import React from 'react';
 import DataGrid, {
   Column,
+  Export,
+  Selection,
+  DataGridTypes,
   FilterRow,
   HeaderFilter,
   FilterPanel,
   FilterBuilderPopup,
   Scrolling,
   GroupPanel,
-  Editing,
   Grouping,
   MasterDetail,
   Lookup,
@@ -19,11 +21,34 @@ import DataGrid, {
   RequiredRule,
   RangeRule,
   StringLengthRule,
+  ColumnChooser,
+  ColumnChooserSearch,
+  ColumnChooserSelection,
+  Position,
 } from 'devextreme-react/data-grid';
+import { ColumnResizeMode } from 'devextreme-react/common/grids';
+import { Workbook } from 'exceljs';
+import { saveAs } from 'file-saver-es';
+import { exportDataGrid } from 'devextreme/excel_exporter';
 import { createStore } from 'devextreme-aspnet-data-nojquery';
 import MasterDetailGrid from './MasterDetailGrid';
 
 const url = 'https://js.devexpress.com/Demos/Mvc/api/DataGridWebApi';
+
+const onExporting = (e: DataGridTypes.ExportingEvent) => {
+  const workbook = new Workbook();
+  const worksheet = workbook.addWorksheet('Main sheet');
+
+  exportDataGrid({
+    component: e.component,
+    worksheet,
+    autoFilterEnabled: true,
+  }).then(() => {
+    workbook.xlsx.writeBuffer().then((buffer) => {
+      saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'DataGrid.xlsx');
+    });
+  });
+};
 
 const dataSource = createStore({
   key: 'OrderID',
@@ -52,13 +77,8 @@ const shippersData = createStore({
   },
 });
 
-const saleAmountEditorOptions = {
-  format: 'currency',
-  showClearButton: true,
-  inputAttr: {
-    'aria-label': 'Filter cell',
-  },
-};
+const searchEditorOptions = { placeholder: 'Search column' };
+
 
 const filterBuilderPopupPosition = typeof window !== 'undefined' ? {
   of: window,
@@ -84,9 +104,7 @@ const filterBuilder = {
 };
 
 const filterValue = [
-  ['Employee', '=', 'Clark Morgan'],
-  'and',
-  ['OrderDate', 'weekends'],
+  ['OrderID', '=', 10248],
 ];
 
 const App = () => (
@@ -97,10 +115,38 @@ const App = () => (
     dataSource={dataSource}
     keyExpr="OrderID"
     showBorders={true}
+    showRowLines={true}
+    showColumnLines={true}
     width="100%"
     height={600}
     remoteOperations={true}
+    onExporting={onExporting}
+    columnHidingEnabled={true}
+    allowColumnResizing={true}
+    columnResizingMode='widget'
+    allowColumnReordering={true}
   >
+    <Selection mode="multiple" />
+    <ColumnChooser
+          height='340px'
+          enabled={true}
+          mode='select'
+        >
+          <Position
+            my="right top"
+            at="right bottom"
+            of=".dx-datagrid-column-chooser-button"
+          />
+
+          <ColumnChooserSearch
+            enabled={true}
+            editorOptions={searchEditorOptions} />
+
+          <ColumnChooserSelection
+            allowSelectAll={true}
+            selectByClick={true}
+            recursive={true} />
+        </ColumnChooser>
     {/* Master-Detail */}
     <MasterDetail enabled={true} component={MasterDetailGrid} />
 
@@ -112,31 +158,13 @@ const App = () => (
 
     {/* Gruplama ve Düzenleme */}
     <GroupPanel visible={true} />
-    <Editing
-      mode="row"
-      allowAdding={true}
-      allowDeleting={true}
-      allowUpdating={true}
-    />
     <Grouping autoExpandAll={false} />
 
     {/* Sütunlar */}
     <Column dataField="OrderID" caption="Order ID" dataType="number" />
-    <Column dataField="OrderNumber" caption="Invoice Number" dataType="number">
-      <HeaderFilter groupInterval={10000} />
-    </Column>
     <Column dataField="OrderDate" dataType="date">
       <RequiredRule message="The OrderDate field is required." />
     </Column>
-    <Column
-      dataField="SaleAmount"
-      dataType="number"
-      editorOptions={saleAmountEditorOptions}
-      format="currency"
-    >
-      <HeaderFilter groupInterval={1000} />
-    </Column>
-    <Column dataField="Employee" caption="Employee" dataType="string" />
     <Column dataField="CustomerID" caption="Customer">
       <Lookup dataSource={customersData} valueExpr="Value" displayExpr="Text" />
       <StringLengthRule
@@ -175,6 +203,7 @@ const App = () => (
 
     {/* Kaydırma */}
     <Scrolling mode="virtual" />
+    <Export enabled={true} allowExportSelectedData={true} />
   </DataGrid>
 );
 

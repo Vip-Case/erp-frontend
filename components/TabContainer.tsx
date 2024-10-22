@@ -67,8 +67,11 @@ const TabContainer: React.FC<TabContainerProps> = ({
         <div 
           ref={tabsListRef} 
           className="w-full border-b bg-muted absolute top-4 left-4 right-4 z-10 overflow-hidden transition-all duration-300 ease-in-out rounded-t-lg"
+          style={{
+            width: 'calc(100% - 2rem)', // Card ile aynı genişlikte olması için
+          }}
         >
-          <TabsList className="flex flex-wrap items-start justify-start p-0 bg-muted">
+          <TabsList className="flex flex-wrap items-start justify-start p-0 bg-muted w-full rounded-t-lg">
             {tabs.map((tab) => (
               <TabsTrigger
                 key={tab}
@@ -90,7 +93,7 @@ const TabContainer: React.FC<TabContainerProps> = ({
           </TabsList>
         </div>
         <div className="flex-grow overflow-auto tab-content">
-          <Card className="mt-4 p-6">
+          <Card className="mt-4 p-6 rounded-t-none"> {/* Üst köşeleri düz yapmak için rounded-t-none eklendi */}
             {tabs.length === 0 ? (
               <div className="h-full flex items-center justify-center">
                 <div className="text-center">
