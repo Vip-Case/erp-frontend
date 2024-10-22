@@ -44,31 +44,30 @@ const StockForm: React.FC = () => {
                     <Card>
                         <CardContent className="pt-6">
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <div className="flex items-center justify-between">
+                                <div className="col-span-2 flex items-center space-x-2">
+                                    <div className="flex-grow">
                                         <Label htmlFor="kategori">Kategori</Label>
-                                        <div className="flex space-x-2">
-                                            <Button size="icon" variant="outline"><RefreshCcw className="h-4 w-4" /></Button>
-                                            <Button size="icon" variant="outline"><Plus className="h-4 w-4" /></Button>
-                                        </div>
+                                        <Select>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="- Seçiniz -" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="category1">Kategori 1</SelectItem>
+                                                <SelectItem value="category2">Kategori 2</SelectItem>
+                                            </SelectContent>
+                                        </Select>
                                     </div>
-                                    <Select>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="- Seçiniz -" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="category1">Kategori 1</SelectItem>
-                                            <SelectItem value="category2">Kategori 2</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                <div className="flex items-center space-x-2">
-                                    <Switch
-                                        checked={isActive}
-                                        onCheckedChange={setIsActive}
-                                    />
-                                    <Label>Aktif</Label>
+                                    <div className="flex space-x-2 self-end">
+                                        <Button size="icon" variant="outline"><RefreshCcw className="h-4 w-4" /></Button>
+                                        <Button size="icon" variant="outline"><Plus className="h-4 w-4" /></Button>
+                                    </div>
+                                    <div className="flex items-center space-x-2 self-end">
+                                        <Switch
+                                            checked={isActive}
+                                            onCheckedChange={setIsActive}
+                                        />
+                                        <Label>Aktif</Label>
+                                    </div>
                                 </div>
 
                                 <div>
