@@ -50,6 +50,7 @@
     "devextreme-aspnet-data-nojquery": "^5.0.0-beta",
     "devextreme-react": "^23.2.4",
     "embla-carousel-react": "^8.3.0",
+    "emblor": "^1.4.6",
     "eslint": "9.13.0",
     "eslint-config-next": "15.0.0",
     "exceljs": "^4.4.0",

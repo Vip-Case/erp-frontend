@@ -68,7 +68,7 @@ const TabContainer: React.FC<TabContainerProps> = ({
           ref={tabsListRef} 
           className="w-full border-b bg-muted sticky top-0 z-10 absolute top-4 left-4 right-4 z-10 overflow-hidden transition-all duration-300 ease-in-out rounded-t-lg"
           style={{
-            width: 'calc(100% - 2rem)', // Card ile aynı genişlikte olması için
+            width: 'calc(100%)', // Card ile aynı genişlikte olması için
           }}
         >
           <TabsList className="flex flex-wrap items-start justify-start p-0 bg-muted w-full rounded-t-lg">

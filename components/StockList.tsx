@@ -136,7 +136,6 @@ const StockList: React.FC = () => {
             <p className="text-sm text-gray-500">
               Stok listesi görünümünü özelleştirin.
             </p>
-            {/* Add more settings options here */}
           </div>
         </DialogContent>
       </Dialog>
