@@ -175,6 +175,7 @@ const StockList: React.FC = () => {
         allowColumnResizing={true}
         columnResizingMode='widget'
         allowColumnReordering={true}
+        columnWidth={100}
       >
         <SearchPanel visible={true} width={240} placeholder="Genel arama..." />
         <Selection mode="multiple" />
@@ -208,6 +209,131 @@ const StockList: React.FC = () => {
         <Column dataField="ShipVia" caption="Shipping Company" dataType="number">
           <Lookup dataSource={shippersData} valueExpr="Value" displayExpr="Text" />
         </Column>
+        <Column dataField="OrderID" caption="Order ID" dataType="number" />
+        <Column dataField="OrderDate" dataType="date">
+          <RequiredRule message="The OrderDate field is required." />
+        </Column>
+        <Column dataField="CustomerID" caption="Customer">
+          <Lookup dataSource={customersData} valueExpr="Value" displayExpr="Text" />
+          <StringLengthRule max={5} message="The field Customer must be a string with a maximum length of 5." />
+        </Column>
+        <Column dataField="Freight">
+          <HeaderFilter groupInterval={100} />
+          <RangeRule min={0} max={2000} message="The field Freight must be between 0 and 2000." />
+        </Column>
+        <Column dataField="ShipCountry" caption="Ship Country" dataType="string">
+          <StringLengthRule max={15} message="The field ShipCountry must be a string with a maximum length of 15." />
+        </Column>
+        <Column dataField="ShipVia" caption="Shipping Company" dataType="number">
+          <Lookup dataSource={shippersData} valueExpr="Value" displayExpr="Text" />
+        </Column>
+        <Column dataField="OrderID" caption="Order ID" dataType="number" />
+        <Column dataField="OrderDate" dataType="date">
+          <RequiredRule message="The OrderDate field is required." />
+        </Column>
+        <Column dataField="CustomerID" caption="Customer">
+          <Lookup dataSource={customersData} valueExpr="Value" displayExpr="Text" />
+          <StringLengthRule max={5} message="The field Customer must be a string with a maximum length of 5." />
+        </Column>
+        <Column dataField="Freight">
+          <HeaderFilter groupInterval={100} />
+          <RangeRule min={0} max={2000} message="The field Freight must be between 0 and 2000." />
+        </Column>
+        <Column dataField="ShipCountry" caption="Ship Country" dataType="string">
+          <StringLengthRule max={15} message="The field ShipCountry must be a string with a maximum length of 15." />
+        </Column>
+        <Column dataField="ShipVia" caption="Shipping Company" dataType="number">
+          <Lookup dataSource={shippersData} valueExpr="Value" displayExpr="Text" />
+        </Column>
+        <Column dataField="OrderID" caption="Order ID" dataType="number" />
+        <Column dataField="OrderDate" dataType="date">
+          <RequiredRule message="The OrderDate field is required." />
+        </Column>
+        <Column dataField="CustomerID" caption="Customer">
+          <Lookup dataSource={customersData} valueExpr="Value" displayExpr="Text" />
+          <StringLengthRule max={5} message="The field Customer must be a string with a maximum length of 5." />
+        </Column>
+        <Column dataField="Freight">
+          <HeaderFilter groupInterval={100} />
+          <RangeRule min={0} max={2000} message="The field Freight must be between 0 and 2000." />
+        </Column>
+        <Column dataField="ShipCountry" caption="Ship Country" dataType="string">
+          <StringLengthRule max={15} message="The field ShipCountry must be a string with a maximum length of 15." />
+        </Column>
+        <Column dataField="ShipVia" caption="Shipping Company" dataType="number">
+          <Lookup dataSource={shippersData} valueExpr="Value" displayExpr="Text" />
+        </Column>
+        <Column dataField="OrderID" caption="Order ID" dataType="number" />
+        <Column dataField="OrderDate" dataType="date">
+          <RequiredRule message="The OrderDate field is required." />
+        </Column>
+        <Column dataField="CustomerID" caption="Customer">
+          <Lookup dataSource={customersData} valueExpr="Value" displayExpr="Text" />
+          <StringLengthRule max={5} message="The field Customer must be a string with a maximum length of 5." />
+        </Column>
+        <Column dataField="Freight">
+          <HeaderFilter groupInterval={100} />
+          <RangeRule min={0} max={2000} message="The field Freight must be between 0 and 2000." />
+        </Column>
+        <Column dataField="ShipCountry" caption="Ship Country" dataType="string">
+          <StringLengthRule max={15} message="The field ShipCountry must be a string with a maximum length of 15." />
+        </Column>
+        <Column dataField="ShipVia" caption="Shipping Company" dataType="number">
+          <Lookup dataSource={shippersData} valueExpr="Value" displayExpr="Text" />
+        </Column>
+        <Column dataField="OrderID" caption="Order ID" dataType="number" />
+        <Column dataField="OrderDate" dataType="date">
+          <RequiredRule message="The OrderDate field is required." />
+        </Column>
+        <Column dataField="CustomerID" caption="Customer">
+          <Lookup dataSource={customersData} valueExpr="Value" displayExpr="Text" />
+          <StringLengthRule max={5} message="The field Customer must be a string with a maximum length of 5." />
+        </Column>
+        <Column dataField="Freight">
+          <HeaderFilter groupInterval={100} />
+          <RangeRule min={0} max={2000} message="The field Freight must be between 0 and 2000." />
+        </Column>
+        <Column dataField="ShipCountry" caption="Ship Country" dataType="string">
+          <StringLengthRule max={15} message="The field ShipCountry must be a string with a maximum length of 15." />
+        </Column>
+        <Column dataField="ShipVia" caption="Shipping Company" dataType="number">
+          <Lookup dataSource={shippersData} valueExpr="Value" displayExpr="Text" />
+        </Column>
+        <Column dataField="OrderID" caption="Order ID" dataType="number" />
+        <Column dataField="OrderDate" dataType="date">
+          <RequiredRule message="The OrderDate field is required." />
+        </Column>
+        <Column dataField="CustomerID" caption="Customer">
+          <Lookup dataSource={customersData} valueExpr="Value" displayExpr="Text" />
+          <StringLengthRule max={5} message="The field Customer must be a string with a maximum length of 5." />
+        </Column>
+        <Column dataField="Freight">
+          <HeaderFilter groupInterval={100} />
+          <RangeRule min={0} max={2000} message="The field Freight must be between 0 and 2000." />
+        </Column>
+        <Column dataField="ShipCountry" caption="Ship Country" dataType="string">
+          <StringLengthRule max={15} message="The field ShipCountry must be a string with a maximum length of 15." />
+        </Column>
+        <Column dataField="ShipVia" caption="Shipping Company" dataType="number">
+          <Lookup dataSource={shippersData} valueExpr="Value" displayExpr="Text" />
+        </Column><Column dataField="OrderID" caption="Order ID" dataType="number" />
+        <Column dataField="OrderDate" dataType="date">
+          <RequiredRule message="The OrderDate field is required." />
+        </Column>
+        <Column dataField="CustomerID" caption="Customer">
+          <Lookup dataSource={customersData} valueExpr="Value" displayExpr="Text" />
+          <StringLengthRule max={5} message="The field Customer must be a string with a maximum length of 5." />
+        </Column>
+        <Column dataField="Freight">
+          <HeaderFilter groupInterval={100} />
+          <RangeRule min={0} max={2000} message="The field Freight must be between 0 and 2000." />
+        </Column>
+        <Column dataField="ShipCountry" caption="Ship Country" dataType="string">
+          <StringLengthRule max={15} message="The field ShipCountry must be a string with a maximum length of 15." />
+        </Column>
+        <Column dataField="ShipVia" caption="Shipping Company" dataType="number">
+          <Lookup dataSource={shippersData} valueExpr="Value" displayExpr="Text" />
+        </Column>
         <Summary>
           <TotalItem column="Freight" summaryType="sum">
             <ValueFormat type="decimal" precision={2} />
@@ -217,7 +343,7 @@ const StockList: React.FC = () => {
           </GroupItem>
           <GroupItem summaryType="count" />
         </Summary>
-        <Scrolling mode="virtual" />
+        <Scrolling mode="virtual" columnRenderingMode='virtual' rowRenderingMode='virtual' />
         <Export enabled={true} allowExportSelectedData={true} />
         <Toolbar>
           <Item name="searchPanel" location="before" />

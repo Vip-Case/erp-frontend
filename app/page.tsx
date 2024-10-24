@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Sidebar from '@/components/Sidebar';
 import StockList from '@/components/StockList';
 import StockForm from '@/components/StockForm';
+import StockMovements from '@/components/StockMovements';
 import TabContainer from '@/components/TabContainer';
 import { Button } from '@/components/ui/button';
 import { Menu, Bell, ChevronDown, LogOut, User } from 'lucide-react';
@@ -49,12 +50,14 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-screen bg-sidebar-bg">
-      <Sidebar
-        isCollapsed={isSidebarCollapsed}
-        onMenuItemClick={handleMenuItemClick}
-      />
-      <div className="flex flex-col flex-grow">
+    <div className="min-h-screen bg-sidebar-bg">
+      {/* Sidebar */}
+      <div className={`sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`}>
+        <Sidebar isCollapsed={isSidebarCollapsed} onMenuItemClick={handleMenuItemClick} />
+      </div>
+
+      {/* Main Content */}
+      <div className="main-content">
         <header className="bg-sidebar-bg text-sidebar-text p-2 flex items-center justify-between">
           <div className="flex items-center">
             <Button
@@ -122,7 +125,7 @@ export default function Home() {
             </div>
           </div>
         </header>
-        <main className="flex-grow overflow-auto bg-background rounded-tl-3xl">
+        <main className="overflow-auto bg-background p-4">
           <TabContainer
             tabs={openTabs}
             activeTab={activeTab}
@@ -132,6 +135,7 @@ export default function Home() {
           >
             {activeTab === 'Stok Listesi' && <StockList />}
             {activeTab === 'Stok Formu' && <StockForm />}
+            {activeTab === 'Hareketler' && <StockMovements />}
           </TabContainer>
         </main>
       </div>

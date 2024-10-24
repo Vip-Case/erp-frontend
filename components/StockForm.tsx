@@ -521,8 +521,8 @@ const StockForm: React.FC = () => {
           <div className="w-1/2 p-4 overflow-auto">
             <Card className="h-auto">
               <CardContent className="p-6">
-                <h3 className="text-xl font-semibold mb-4">Bilgi</h3>
-                <p>Buraya ek bilgiler veya açıklamalar eklenebilir.</p>
+                <h3 className="text-xl font-semibold mb-4">Pazaryerleri</h3>
+                <p>Pazaryeri işlemleri yapabilmek için stok formunu kayıt ediniz.</p>
               </CardContent>
             </Card>
           </div>
