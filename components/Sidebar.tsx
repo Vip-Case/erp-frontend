@@ -76,7 +76,7 @@ const menuItems = [
   {
     name: 'Depolar',
     icon: <Warehouse className="h-5 w-5" />,
-    subItems: ['Mal Kabul', 'Giriş/Çıkış', 'Stok Sayım', 'Sipariş Paketleme'],
+    subItems: ['Depo Tanımlama', 'Depo Listesi', 'Mal Kabul', 'Mal Çıkış', 'Stok Sayım', 'Sipariş Paketleme'],
   },
   {
     name: 'Pazaryerleri',
@@ -93,16 +93,6 @@ const menuItems = [
       'BA/BS',
       'Gelen E-Faturalar',
       'Gelen E-İrsaliyeler',
-    ],
-  },
-  {
-    name: 'Sipariş / Teklif',
-    icon: <ClipboardList className="h-5 w-5" />,
-    subItems: [
-      'Sipariş Listesi',
-      'Teklif Listesi',
-      'B2B Sipariş Listesi',
-      'Hızlı Sipariş Listesi',
     ],
   },
   {

@@ -7,6 +7,7 @@ import {
     Search,
     Plus,
     RefreshCw,
+    Import,
 } from 'lucide-react';
 
 const BundleSetToolbar: React.FC = () => {
@@ -37,6 +38,11 @@ const BundleSetToolbar: React.FC = () => {
                 <Button variant="default" size="sm" className="bg-[#84CC16] hover:bg-[#65A30D]">
                     <Plus className="h-4 w-4 mr-2" />
                     Yeni Gruplu Stok
+                </Button>
+
+                <Button variant="default" size="sm" className="bg-[#3070e6] hover:bg-[#254785]">
+                    <Import className="h-4 w-4 mr-2" />
+                    Bundle/Set İçe Aktar
                 </Button>
             </div>
         </div>

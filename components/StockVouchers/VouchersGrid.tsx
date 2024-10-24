@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import DataGrid, {
     Column,
     Export,
@@ -21,6 +21,11 @@ import DataGrid, {
     StateStoring,
     LoadPanel,
     Lookup,
+    ColumnChooserSearch,
+    ColumnChooserSelection,
+    Position,
+    FilterBuilderPopup,
+    FilterPanel,
 } from 'devextreme-react/data-grid';
 import { Workbook } from 'exceljs';
 import { saveAs } from 'file-saver-es';
@@ -32,6 +37,8 @@ import { vouchers, voucherTypes, accountTypes, operations } from './data';
 interface VouchersGridProps {
     type: 'stock-vouchers' | 'pending-transfer' | 'incomplete';
 }
+
+const searchEditorOptions = { placeholder: 'Search column' };
 
 const onExporting = (e: any) => {
     const workbook = new Workbook();
@@ -59,6 +66,7 @@ const onExporting = (e: any) => {
 
 const VouchersGrid: React.FC<VouchersGridProps> = ({ type }) => {
     const dataGridRef = useRef<DataGrid>(null);
+    const [filterBuilderPopupPosition, setFilterBuilderPopupPosition] = useState({});
 
     const clearFilters = () => {
         if (dataGridRef.current) {
@@ -67,7 +75,7 @@ const VouchersGrid: React.FC<VouchersGridProps> = ({ type }) => {
     };
 
     const renderToolbarButtons = () => (
-        <Item location="before" render={() => (
+        <Item location="after" render={() => (
             <Button variant="outline" size="sm">
                 <RefreshCcw className="h-4 w-4 mr-2" />
                 Yenile
@@ -85,10 +93,14 @@ const VouchersGrid: React.FC<VouchersGridProps> = ({ type }) => {
             rowAlternationEnabled={true}
             allowColumnReordering={true}
             allowColumnResizing={true}
+            columnResizingMode='widget'
             columnAutoWidth={true}
+            columnHidingEnabled={true}
+            remoteOperations={true}
             wordWrapEnabled={true}
             height="calc(100vh - 250px)"
             onExporting={onExporting}
+            columnWidth={150}
         >
             <StateStoring enabled={true} type="localStorage" storageKey={`stockVouchersGrid-${type}`} />
             <LoadPanel enabled={true} />
@@ -97,8 +109,14 @@ const VouchersGrid: React.FC<VouchersGridProps> = ({ type }) => {
             <HeaderFilter visible={true} />
             <GroupPanel visible={true} />
             <Grouping autoExpandAll={false} />
-            <ColumnChooser enabled={true} mode="select" />
+            <ColumnChooser height={340} enabled={true} mode="select">
+                <Position my="right top" at="right bottom" of=".dx-datagrid-column-chooser-button" />
+                <ColumnChooserSearch enabled={true} editorOptions={searchEditorOptions} />
+                <ColumnChooserSelection allowSelectAll={true} selectByClick={true} recursive={true} />
+            </ColumnChooser>
             <ColumnFixing enabled={true} />
+            <FilterPanel visible={true} />
+            <FilterBuilderPopup position={filterBuilderPopupPosition} />
             <Scrolling mode="virtual" rowRenderingMode="virtual" />
             <Paging enabled={false} />
             <SearchPanel visible={true} width={240} placeholder="Ara..." />
@@ -135,10 +153,11 @@ const VouchersGrid: React.FC<VouchersGridProps> = ({ type }) => {
             </Summary>
 
             <Toolbar>
+                <Item name='groupPanel' location='before' />
                 {renderToolbarButtons()}
-                <Item name="searchPanel" />
-                <Item name="exportButton" />
-                <Item name="columnChooserButton" />
+                <Item name="searchPanel" location='after'/>
+                <Item name="exportButton" location='after'/>
+                <Item name="columnChooserButton" location='after'/>
             </Toolbar>
         </DataGrid>
     );

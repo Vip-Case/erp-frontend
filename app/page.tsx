@@ -25,6 +25,9 @@ import StockVouchers from '@/components/StockVouchers';
 import BundleSetStocks from '@/components/BundleSetStocks';
 import BundleSetStockForm from '@/components/BundleSetStockForm';
 import QuickStock from '@/components/QuickStock';
+import Campaigns from '@/components/Campaigns';
+import CampaignDialog from '@/components/Campaigns/CampaignDialog';
+import Categories from '@/components/Categories';
 
 export default function Home() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -56,12 +59,10 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-sidebar-bg">
-      {/* Sidebar */}
       <div className={`sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`}>
         <Sidebar isCollapsed={isSidebarCollapsed} onMenuItemClick={handleMenuItemClick} />
       </div>
 
-      {/* Main Content */}
       <div className="main-content">
         <header className="bg-sidebar-bg text-sidebar-text p-2 flex items-center justify-between">
           <div className="flex items-center">
@@ -140,15 +141,18 @@ export default function Home() {
           >
             {activeTab === 'Stok Listesi' && <StockList />}
             {activeTab === 'Stok Formu' && <StockForm />}
-            {activeTab === 'Hizmet - Masraflar' && <ServicesCosts />}
-            {activeTab === 'Hareketler' && <StockMovements />}
-            {activeTab === 'Fişler' && <StockVouchers />}
             {activeTab === 'Bundle/Set Stoklar' && <BundleSetStocks />}
             {activeTab === 'Bundle/Set Stok Formu' && <BundleSetStockForm />}
+            {activeTab === 'Hizmet - Masraflar' && <ServicesCosts />}
+            {activeTab === 'Fişler' && <StockVouchers />}
+            {activeTab === 'Hareketler' && <StockMovements />}
             {activeTab === 'Hızlı Stok' && <QuickStock />}
+            {activeTab === 'Kampanyalar' && <Campaigns />}
+            {activeTab === 'Kategoriler' && <Categories />}
           </TabContainer>
         </main>
       </div>
+      <CampaignDialog />
     </div>
   );
 }

@@ -9,6 +9,7 @@ import {
     Plus,
     Settings,
     List,
+    Import,
 } from 'lucide-react';
 
 const MovementsToolbar: React.FC = () => {
@@ -43,6 +44,11 @@ const MovementsToolbar: React.FC = () => {
                 <Button variant="outline" size="sm">
                     <List className="h-4 w-4 mr-2" />
                     Tüm Hareketler
+                </Button>
+
+                <Button variant="outline" size="sm">
+                    <Import className="h-4 w-4 mr-2" />
+                    İçe Aktar
                 </Button>
             </div>
         </div>

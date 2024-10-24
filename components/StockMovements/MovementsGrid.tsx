@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import DataGrid, {
     Column,
     Export,
@@ -21,6 +21,11 @@ import DataGrid, {
     StateStoring,
     LoadPanel,
     Lookup,
+    ColumnChooserSearch,
+    ColumnChooserSelection,
+    Position,
+    FilterBuilderPopup,
+    FilterPanel,
 } from 'devextreme-react/data-grid';
 import { Workbook } from 'exceljs';
 import { saveAs } from 'file-saver-es';
@@ -28,10 +33,13 @@ import { exportDataGrid } from 'devextreme/excel_exporter';
 import { Button } from '@/components/ui/button';
 import { RefreshCcw } from 'lucide-react';
 import { movements, documentTypes, warehouses, branches, currencies } from './data';
+import { DataType } from 'devextreme/common';
 
 interface MovementsGridProps {
     type: 'previous-purchases' | 'customer-purchases' | 'previous-sales' | 'customer-sales' | 'orders' | 'all-movements';
 }
+
+const searchEditorOptions = { placeholder: 'Search column' };
 
 const onExporting = (e: any) => {
     const workbook = new Workbook();
@@ -59,7 +67,7 @@ const onExporting = (e: any) => {
 
 const MovementsGrid: React.FC<MovementsGridProps> = ({ type }) => {
     const dataGridRef = useRef<DataGrid>(null);
-
+    const [filterBuilderPopupPosition, setFilterBuilderPopupPosition] = useState({});
     const clearFilters = () => {
         if (dataGridRef.current) {
             dataGridRef.current.instance.clearFilter();
@@ -67,7 +75,7 @@ const MovementsGrid: React.FC<MovementsGridProps> = ({ type }) => {
     };
 
     const renderToolbarButtons = () => (
-        <Item location="before" render={() => (
+        <Item location="after" render={() => (
             <div className="flex gap-2">
                 <Button variant="outline" size="sm">
                     <RefreshCcw className="h-4 w-4 mr-2" />
@@ -87,10 +95,14 @@ const MovementsGrid: React.FC<MovementsGridProps> = ({ type }) => {
             rowAlternationEnabled={true}
             allowColumnReordering={true}
             allowColumnResizing={true}
+            columnResizingMode='widget'
             columnAutoWidth={true}
+            columnHidingEnabled={true}
+            remoteOperations={true}
             wordWrapEnabled={true}
             height="calc(100vh - 250px)"
             onExporting={onExporting}
+            columnWidth={150}
         >
             <StateStoring enabled={true} type="localStorage" storageKey={`stockMovementsGrid-${type}`} />
             <LoadPanel enabled={true} />
@@ -99,8 +111,14 @@ const MovementsGrid: React.FC<MovementsGridProps> = ({ type }) => {
             <HeaderFilter visible={true} />
             <GroupPanel visible={true} />
             <Grouping autoExpandAll={false} />
-            <ColumnChooser enabled={true} mode="select" />
+            <ColumnChooser height={340} enabled={true} mode="select">
+                <Position my="right top" at="right bottom" of=".dx-datagrid-column-chooser-button" />
+                <ColumnChooserSearch enabled={true} editorOptions={searchEditorOptions} />
+                <ColumnChooserSelection allowSelectAll={true} selectByClick={true} recursive={true} />
+            </ColumnChooser>
             <ColumnFixing enabled={true} />
+            <FilterPanel visible={true} />
+            <FilterBuilderPopup position={filterBuilderPopupPosition} />
             <Scrolling mode="virtual" rowRenderingMode="virtual" />
             <Paging enabled={false} />
             <SearchPanel visible={true} width={240} placeholder="Ara..." />
@@ -158,10 +176,11 @@ const MovementsGrid: React.FC<MovementsGridProps> = ({ type }) => {
             </Summary>
 
             <Toolbar>
+                <Item name='groupPanel' location='before' />
                 {renderToolbarButtons()}
-                <Item name="searchPanel" />
-                <Item name="exportButton" />
-                <Item name="columnChooserButton" />
+                <Item name="searchPanel" location='after' />
+                <Item name="exportButton" location='after' />
+                <Item name="columnChooserButton" location='after' />
             </Toolbar>
         </DataGrid>
     );

@@ -43,9 +43,8 @@ const StockForm: React.FC = () => {
 
       <div className="flex-grow overflow-auto">
         <div className="flex h-auto">
-          <div className="w-1/2 p-4 overflow-auto">
             <Tabs defaultValue="genel" className="h-auto flex flex-col">
-              <TabsList className="grid w-full grid-cols-7 mb-4">
+              <TabsList className="grid w-full grid-cols-9 mb-4">
                 <TabsTrigger value="genel">Genel</TabsTrigger>
                 <TabsTrigger value="diger">Diğer</TabsTrigger>
                 <TabsTrigger value="resmi-fatura">Resmi Fatura</TabsTrigger>
@@ -53,6 +52,8 @@ const StockForm: React.FC = () => {
                 <TabsTrigger value="uretciler">Üreticiler</TabsTrigger>
                 <TabsTrigger value="birimler">Birimler</TabsTrigger>
                 <TabsTrigger value="sube">Şube</TabsTrigger>
+                <TabsTrigger value="pazaryeri">Pazaryerleri</TabsTrigger>
+                <TabsTrigger value="hareket">Hareketler</TabsTrigger>
               </TabsList>
 
               <TabsContent value="genel" className="h-[calc(100%-3rem)] overflow-auto">
@@ -174,30 +175,6 @@ const StockForm: React.FC = () => {
                         <div className="flex items-center space-x-2 mt-6">
                           <Switch id="kdvDahilAlis" />
                           <Label htmlFor="kdvDahilAlis">Kdv Dahil</Label>
-                        </div>
-                      </div>
-
-                      <div className="col-span-2 grid grid-cols-4 gap-2">
-                        <div>
-                          <Label>Web</Label>
-                          <Input placeholder="0,00" />
-                        </div>
-                        <div>
-                          <Label>Döviz</Label>
-                          <Select>
-                            <SelectTrigger>
-                              <SelectValue placeholder="₺" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="tl">₺</SelectItem>
-                              <SelectItem value="usd">$</SelectItem>
-                              <SelectItem value="eur">€</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="col-span-2">
-                          <Label>Kdv Dahil Fiyat</Label>
-                          <Input placeholder="0,00" />
                         </div>
                       </div>
 
@@ -427,17 +404,6 @@ const StockForm: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Üretim Reçetesi */}
-                      <div>
-                        <Label>Üretim Reçetesi</Label>
-                        <div className="border rounded-lg p-4 bg-muted/50">
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Info className="h-4 w-4" />
-                            <span>Bu özelliği kullanabilmek için, önce stok kartını kaydediniz.</span>
-                          </div>
-                        </div>
-                      </div>
-
                       {/* Kritik Seviye Miktar */}
                       <div>
                         <Label>Kritik Seviye Miktar</Label>
@@ -510,16 +476,23 @@ const StockForm: React.FC = () => {
               <TabsContent value="sube" className="h-[calc(100%-3rem)] overflow-auto">
                 <StockBranch />
               </TabsContent>
+              <TabsContent value="pazaryeri" className="h-[calc(100%-3rem)] overflow-auto">
+                <Card className="h-auto">
+                  <CardContent className="p-6">
+                    <h3 className="text-xl font-semibold mb-4">Pazaryerleri</h3>
+                    <p>Pazaryeri işlemleri yapabilmek için stok formunu kayıt ediniz.</p>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              <TabsContent value="hareket" className="h-[calc(100%-3rem)] overflow-auto">
+                <Card className="h-auto">
+                  <CardContent className="p-6">
+                    <h3 className="text-xl font-semibold mb-4">Hareketler</h3>
+                    <p>Stok hareketlerini görmek için stok formunu kayıt ediniz.</p>
+                  </CardContent>
+                </Card>
+              </TabsContent>
             </Tabs>
-          </div>
-          <div className="w-1/2 p-4 overflow-auto">
-            <Card className="h-auto">
-              <CardContent className="p-6">
-                <h3 className="text-xl font-semibold mb-4">Pazaryerleri</h3>
-                <p>Pazaryeri işlemleri yapabilmek için stok formunu kayıt ediniz.</p>
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </div>
     </div>
