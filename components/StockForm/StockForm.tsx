@@ -34,10 +34,6 @@ const StockForm: React.FC = () => {
       <div className="flex justify-between items-center mb-4 p-4">
         <h2 className="text-2xl font-bold">Stok Formu</h2>
         <div className="flex space-x-2">
-          <Button variant="outline">
-            <Info className="mr-2 h-4 w-4" />
-            İşlemler
-          </Button>
           <Button variant="default">
             <Printer className="mr-2 h-4 w-4" />
             KAYDET
@@ -47,7 +43,6 @@ const StockForm: React.FC = () => {
 
       <div className="flex-grow overflow-auto">
         <div className="flex h-auto">
-          {/* Left side - existing content */}
           <div className="w-1/2 p-4 overflow-auto">
             <Tabs defaultValue="genel" className="h-auto flex flex-col">
               <TabsList className="grid w-full grid-cols-7 mb-4">
@@ -517,7 +512,6 @@ const StockForm: React.FC = () => {
               </TabsContent>
             </Tabs>
           </div>
-          {/* Right side - new card */}
           <div className="w-1/2 p-4 overflow-auto">
             <Card className="h-auto">
               <CardContent className="p-6">

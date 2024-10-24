@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import Sidebar from '@/components/Sidebar';
-import StockList from '@/components/StockList';
-import StockForm from '@/components/StockForm';
+import StockList from '@/components/StockList/StockList';
+import StockForm from '@/components/StockForm/StockForm';
 import StockMovements from '@/components/StockMovements';
 import TabContainer from '@/components/TabContainer';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import ServicesCosts from '@/components/Services-Costs';
+import StockVouchers from '@/components/StockVouchers';
+import BundleSetStocks from '@/components/BundleSetStocks';
+import BundleSetStockForm from '@/components/BundleSetStockForm';
+import QuickStock from '@/components/QuickStock';
 
 export default function Home() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -138,6 +142,10 @@ export default function Home() {
             {activeTab === 'Stok Formu' && <StockForm />}
             {activeTab === 'Hizmet - Masraflar' && <ServicesCosts />}
             {activeTab === 'Hareketler' && <StockMovements />}
+            {activeTab === 'Fişler' && <StockVouchers />}
+            {activeTab === 'Bundle/Set Stoklar' && <BundleSetStocks />}
+            {activeTab === 'Bundle/Set Stok Formu' && <BundleSetStockForm />}
+            {activeTab === 'Hızlı Stok' && <QuickStock />}
           </TabContainer>
         </main>
       </div>
