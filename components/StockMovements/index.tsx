@@ -12,7 +12,7 @@ const StockMovements: React.FC = () => {
     return (
         <div className="grid-container">
             <MovementsToolbar />
-            
+
             <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
                 <TabsList className="grid grid-cols-6 w-full">
                     <TabsTrigger value="previous-purchases">Önceki Alışlar</TabsTrigger>
@@ -25,37 +25,37 @@ const StockMovements: React.FC = () => {
 
                 <TabsContent value="previous-purchases">
                     <Card>
-                        <MovementsGrid />
+                        <MovementsGrid type="previous-purchases" />
                     </Card>
                 </TabsContent>
 
                 <TabsContent value="customer-purchases">
                     <Card>
-                        <MovementsGrid />
+                        <MovementsGrid type="customer-purchases" />
                     </Card>
                 </TabsContent>
 
                 <TabsContent value="previous-sales">
                     <Card>
-                        <MovementsGrid />
+                        <MovementsGrid type="previous-sales" />
                     </Card>
                 </TabsContent>
 
                 <TabsContent value="customer-sales">
                     <Card>
-                        <MovementsGrid />
+                        <MovementsGrid type="customer-sales" />
                     </Card>
                 </TabsContent>
 
                 <TabsContent value="orders">
                     <Card>
-                        <MovementsGrid />
+                        <MovementsGrid type="orders" />
                     </Card>
                 </TabsContent>
 
                 <TabsContent value="all-movements">
                     <Card>
-                        <MovementsGrid />
+                        <MovementsGrid type="all-movements" />
                     </Card>
                 </TabsContent>
             </Tabs>

@@ -20,6 +20,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import ServicesCosts from '@/components/Services-Costs';
 
 export default function Home() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -135,6 +136,7 @@ export default function Home() {
           >
             {activeTab === 'Stok Listesi' && <StockList />}
             {activeTab === 'Stok Formu' && <StockForm />}
+            {activeTab === 'Hizmet - Masraflar' && <ServicesCosts />}
             {activeTab === 'Hareketler' && <StockMovements />}
           </TabContainer>
         </main>

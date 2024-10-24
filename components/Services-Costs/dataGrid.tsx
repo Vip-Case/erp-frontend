@@ -27,15 +27,12 @@ import { saveAs } from 'file-saver-es';
 import { exportDataGrid } from 'devextreme/excel_exporter';
 import { Button } from '@/components/ui/button';
 import { RefreshCcw } from 'lucide-react';
-import { movements, documentTypes, warehouses, branches, currencies } from './data';
+import { servicesAndCosts } from './data';
 
-interface MovementsGridProps {
-    type: 'previous-purchases' | 'customer-purchases' | 'previous-sales' | 'customer-sales' | 'orders' | 'all-movements';
-}
 
 const onExporting = (e: any) => {
     const workbook = new Workbook();
-    const worksheet = workbook.addWorksheet('Stok Hareketleri');
+    const worksheet = workbook.addWorksheet('Hizmet-Masraf');
 
     exportDataGrid({
         component: e.component,
@@ -52,12 +49,12 @@ const onExporting = (e: any) => {
         }
     }).then(() => {
         workbook.xlsx.writeBuffer().then((buffer) => {
-            saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'StokHareketleri.xlsx');
+            saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'Hizmet-Masraf.xlsx');
         });
     });
 };
 
-const MovementsGrid: React.FC<MovementsGridProps> = ({ type }) => {
+const ServicesCostsGrid: React.FC = () => {
     const dataGridRef = useRef<DataGrid>(null);
 
     const clearFilters = () => {
@@ -80,7 +77,7 @@ const MovementsGrid: React.FC<MovementsGridProps> = ({ type }) => {
     return (
         <DataGrid
             ref={dataGridRef}
-            dataSource={movements}
+            dataSource={servicesAndCosts}
             showBorders={true}
             showRowLines={true}
             showColumnLines={true}
@@ -92,7 +89,7 @@ const MovementsGrid: React.FC<MovementsGridProps> = ({ type }) => {
             height="calc(100vh - 250px)"
             onExporting={onExporting}
         >
-            <StateStoring enabled={true} type="localStorage" storageKey={`stockMovementsGrid-${type}`} />
+            <StateStoring enabled={true} type="localStorage" storageKey={`servicesAndCostsGrid`} />
             <LoadPanel enabled={true} />
             <Selection mode="multiple" showCheckBoxesMode="always" />
             <FilterRow visible={true} />
@@ -106,57 +103,6 @@ const MovementsGrid: React.FC<MovementsGridProps> = ({ type }) => {
             <SearchPanel visible={true} width={240} placeholder="Ara..." />
             <Export enabled={true} allowExportSelectedData={true} />
 
-            <Column dataField="date" caption="Tarih" dataType="date" format="dd.MM.yyyy" />
-            <Column dataField="documentNo" caption="Belge No" />
-            <Column dataField="documentType" caption="Belge Tipi">
-                <Lookup dataSource={documentTypes} />
-            </Column>
-            <Column dataField="warehouse" caption="Depo">
-                <Lookup dataSource={warehouses} />
-            </Column>
-            <Column dataField="customer" caption="Cari" />
-            <Column dataField="stockCode" caption="Stok Kodu" />
-            <Column dataField="stockName" caption="Stok Adı" />
-            <Column dataField="unit" caption="Birim" />
-            <Column dataField="quantity" caption="Miktar" dataType="number" format="#,##0.##" />
-            <Column dataField="unitPrice" caption="Birim Fiyat" dataType="number" format="#,##0.00" />
-            <Column dataField="currency" caption="Döviz">
-                <Lookup dataSource={currencies} />
-            </Column>
-            <Column dataField="totalAmount" caption="Tutar" dataType="number" format="#,##0.00" />
-            <Column dataField="vat" caption="KDV" dataType="number" format="#,##0.00" />
-            <Column dataField="totalWithVat" caption="Toplam" dataType="number" format="#,##0.00" />
-            <Column dataField="description" caption="Açıklama" />
-            <Column dataField="branch" caption="Şube">
-                <Lookup dataSource={branches} />
-            </Column>
-            <Column dataField="user" caption="Kullanıcı" />
-            <Column dataField="createdAt" caption="Oluşturma Tarihi" dataType="datetime" format="dd.MM.yyyy HH:mm" />
-            <Column dataField="status" caption="Durum" />
-
-            <Summary>
-                <TotalItem
-                    column="quantity"
-                    summaryType="sum"
-                    valueFormat="#,##0.##"
-                />
-                <TotalItem
-                    column="totalAmount"
-                    summaryType="sum"
-                    valueFormat="#,##0.00"
-                />
-                <TotalItem
-                    column="vat"
-                    summaryType="sum"
-                    valueFormat="#,##0.00"
-                />
-                <TotalItem
-                    column="totalWithVat"
-                    summaryType="sum"
-                    valueFormat="#,##0.00"
-                />
-            </Summary>
-
             <Toolbar>
                 {renderToolbarButtons()}
                 <Item name="searchPanel" />
@@ -167,4 +113,4 @@ const MovementsGrid: React.FC<MovementsGridProps> = ({ type }) => {
     );
 };
 
-export default MovementsGrid;
+export default ServicesCostsGrid;
