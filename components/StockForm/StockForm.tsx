@@ -77,7 +77,7 @@ const StockForm: React.FC = () => {
                           <Button size="icon" variant="outline"><RefreshCcw className="h-4 w-4" /></Button>
                           <Button size="icon" variant="outline"><Plus className="h-4 w-4" /></Button>
                         </div>
-                        <div className="flex items-center space-x-2 self-end">
+                        <div className="flex items-center space-x-2 pt-6">
                           <Switch
                             checked={isActive}
                             onCheckedChange={setIsActive}
@@ -91,11 +91,7 @@ const StockForm: React.FC = () => {
                         <Input id="stokAdi" />
                       </div>
 
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <Label htmlFor="barkod">Barkod</Label>
-                          <Input id="barkod" />
-                        </div>
+                      <div className="grid grid-cols-1 gap-1">
                         <div>
                           <Label htmlFor="stokKodu">Stok Kodu</Label>
                           <Input id="stokKodu" />
@@ -116,14 +112,14 @@ const StockForm: React.FC = () => {
                       </div>
 
                       <div>
-                        <Label htmlFor="ureticiKodu">Üretici Kodu</Label>
-                        <Input id="ureticiKodu" />
+                        <Label htmlFor="brand">Marka</Label>
+                        <Input id="brand" />
                       </div>
 
                       {/* Price inputs */}
                       <div className="col-span-2 grid grid-cols-4 gap-2">
                         <div>
-                          <Label>Fiyat</Label>
+                          <Label>Satış Fiyat</Label>
                           <Input placeholder="0,00" />
                         </div>
                         <div>
@@ -152,7 +148,7 @@ const StockForm: React.FC = () => {
                       {/* More price inputs */}
                       <div className="col-span-2 grid grid-cols-4 gap-2">
                         <div>
-                          <Label>Alış</Label>
+                          <Label>Alış Fiyat</Label>
                           <Input placeholder="0,00" />
                         </div>
                         <div>
@@ -228,7 +224,7 @@ const StockForm: React.FC = () => {
                   <CardContent className="pt-6">
                     <div className="space-y-4">
                       {/* First Row */}
-                      <div className="grid grid-cols-3 gap-4">
+                      <div className="grid grid-cols-3 gap-2">
                         <div>
                           <Label>Hızlı Satış Grubu</Label>
                           <Select>
@@ -244,8 +240,8 @@ const StockForm: React.FC = () => {
                           <Label>Raf</Label>
                           <Input placeholder="" />
                         </div>
-                        <div className="flex items-center space-x-4 pt-6">
-                          <div className="flex items-center space-x-2">
+                        <div className="flex items-right ml-auto space-x-2 pt-8">
+                          <div className="flex items-right space-x-2">
                             <Switch
                               checked={isSerili}
                               onCheckedChange={setIsSerili}
@@ -257,7 +253,7 @@ const StockForm: React.FC = () => {
                               checked={isYerli}
                               onCheckedChange={setIsYerli}
                             />
-                            <Label>Yerli</Label>
+                            <Label>Eksi Seviye Satış</Label>
                           </div>
                         </div>
                       </div>
