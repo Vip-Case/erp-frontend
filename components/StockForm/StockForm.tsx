@@ -44,11 +44,12 @@ const StockForm: React.FC = () => {
       <div className="flex-grow overflow-auto">
         <div className="flex h-auto">
             <Tabs defaultValue="genel" className="h-auto flex flex-col">
-              <TabsList className="grid w-full grid-cols-9 mb-4">
+              <TabsList className="grid w-full grid-cols-10 mb-4">
                 <TabsTrigger value="genel">Genel</TabsTrigger>
                 <TabsTrigger value="diger">Diğer</TabsTrigger>
                 <TabsTrigger value="resmi-fatura">Resmi Fatura</TabsTrigger>
                 <TabsTrigger value="ozellikler">Özellikler</TabsTrigger>
+                <TabsTrigger value='varyasyonlar'>Varyantlar</TabsTrigger>
                 <TabsTrigger value="uretciler">Üreticiler</TabsTrigger>
                 <TabsTrigger value="birimler">Birimler</TabsTrigger>
                 <TabsTrigger value="sube">Şube</TabsTrigger>
@@ -462,6 +463,14 @@ const StockForm: React.FC = () => {
               </TabsContent>
               <TabsContent value="ozellikler" className="h-[calc(100%-3rem)] overflow-auto">
                 <StockProperties />
+              </TabsContent>
+              <TabsContent value="varyasyonlar" className="h-[calc(100%-3rem)] overflow-auto">
+                <Card className="h-auto">
+                  <CardContent className="p-6">
+                    <h3 className="text-xl font-semibold mb-4">Varyantlar</h3>
+                    <p>Varyantlar eklemek için stok formunu kayıt ediniz.</p>
+                  </CardContent>
+                </Card>
               </TabsContent>
               <TabsContent value="uretciler" className="h-[calc(100%-3rem)] overflow-auto">
                 <StockManufacturers />

@@ -96,6 +96,11 @@ const menuItems = [
     ],
   },
   {
+    name: 'Kartlar',
+    icon: <ClipboardList className="h-5 w-5" />,
+    subItems: ['Özellikler', 'Kategoriler'],
+  },
+  {
     name: 'Raporlar',
     icon: <BarChart2 className="h-5 w-5" />,
     subItems: [
