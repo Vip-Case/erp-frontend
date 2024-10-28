@@ -20,6 +20,7 @@ import {
   Settings,
   Server,
   File,
+  Circle,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -32,42 +33,41 @@ const menuItems = [
     name: 'İşlemler',
     icon: <LayoutDashboard className="h-5 w-5" />,
     subItems: [
-      'Cari İşlemleri',
-      'Kasa İşlemleri',
-      'Banka İşlemleri',
-      'Kredi Kartı İşlemleri',
-      'POS İşlemleri',
-      'Çek/Senet İşlemleri',
-      'Hizmet/Masraf İşlemleri',
-      'Evrak Yönetimi',
-      'Online Banka İşlemleri',
+      { name: 'Cari İşlemleri', disabled: true },
+      { name: 'Kasa İşlemleri', disabled: true },
+      { name: 'Banka İşlemleri', disabled: true },
+      { name: 'Kredi Kartı İşlemleri', disabled: true },
+      { name: 'POS İşlemleri', disabled: true },
+      { name: 'Çek/Senet İşlemleri', disabled: true },
+      { name: 'Hizmet/Masraf İşlemleri', disabled: true },
+      { name: 'Evrak Yönetimi', disabled: true },
+      { name: 'Online Banka İşlemleri', disabled: true },
     ],
   },
   {
     name: 'Stoklar',
     icon: <Package className="h-5 w-5" />,
     subItems: [
-      'Stok Listesi',
-      'Stok Formu',
-      'Hizmet - Masraflar',
-      'Hareketler',
-      'Kategoriler',
-      'Özellikler',
-      'Fişler',
-      'Bundle/Set Stoklar',
-      'Bundle/Set Stok Formu',
-      'Hızlı Stok',
-      'Kampanyalar',
+      { name: 'Stok Listesi', disabled: false },
+      { name: 'Stok Formu', disabled: false },
+      { name: 'Hizmet - Masraflar', disabled: false },
+      { name: 'Hareketler', disabled: false },
+      { name: 'Kategoriler', disabled: false },
+      { name: 'Fişler', disabled: false },
+      { name: 'Bundle/Set Stoklar', disabled: false },
+      { name: 'Bundle/Set Stok Formu', disabled: false },
+      { name: 'Hızlı Stok', disabled: false },
+      { name: 'Kampanyalar', disabled: false },
     ],
   },
   {
     name: 'Cariler',
     icon: <Users className="h-5 w-5" />,
     subItems: [
-      'Cari Listesi',
-      'Cari Kategorileri',
-      'Hesap Özeti',
-      'Ödeme/Tahsilat Plan',
+      { name: 'Cari Listesi', disabled: true },
+      { name: 'Cari Kategorileri', disabled: true },
+      { name: 'Hesap Özeti', disabled: true },
+      { name: 'Ödeme/Tahsilat Plan', disabled: true },
     ],
   },
   {
@@ -77,77 +77,91 @@ const menuItems = [
   {
     name: 'Depolar',
     icon: <Warehouse className="h-5 w-5" />,
-    subItems: ['Depo Tanımlama', 'Depo Listesi', 'Mal Kabul', 'Mal Çıkış', 'Stok Sayım', 'Sipariş Paketleme'],
+    subItems: [
+      { name: 'Depo Tanımlama', disabled: false },
+      { name: 'Depo Listesi', disabled: false },
+      { name: 'Mal Kabul', disabled: true },
+      { name: 'Mal Çıkış', disabled: true },
+      { name: 'Stok Sayım', disabled: true },
+      { name: 'Sipariş Paketleme', disabled: true },
+    ],
   },
   {
     name: 'Pazaryerleri',
     icon: <ShoppingBag className="h-5 w-5" />,
-    subItems: ['Siparişler', 'Servisler', 'İşlem Geçmişi'],
+    subItems: [
+      { name: 'Siparişler', disabled: true },
+      { name: 'Servisler', disabled: true },
+      { name: 'İşlem Geçmişi', disabled: true },
+    ],
   },
   {
     name: 'Fatura / İrsaliye',
     icon: <File className="h-5 w-5" />,
     subItems: [
-      'Fatura Listesi',
-      'İrsaliye Listesi',
-      'Planlı Fatura',
-      'BA/BS',
-      'Gelen E-Faturalar',
-      'Gelen E-İrsaliyeler',
+      { name: 'Fatura Listesi', disabled: true },
+      { name: 'İrsaliye Listesi', disabled: true },
+      { name: 'Planlı Fatura', disabled: true },
+      { name: 'BA/BS', disabled: true },
+      { name: 'Gelen E-Faturalar', disabled: true },
+      { name: 'Gelen E-İrsaliyeler', disabled: true },
     ],
   },
   {
     name: 'Kartlar',
     icon: <ClipboardList className="h-5 w-5" />,
-    subItems: ['Şubeler'],
+    subItems: [
+      { name: 'Özellikler', disabled: true },
+      { name: 'Kategoriler', disabled: true },
+    ],
   },
   {
     name: 'Raporlar',
     icon: <BarChart2 className="h-5 w-5" />,
     subItems: [
-      'Cari Bakiye',
-      'Cari Satışlar',
-      'Banka Bakiye',
-      'Kasa Bakiye',
-      'Stok Devir Hiz',
-      'Stok',
-      'Envanter',
-      'Fatura Hareketleri',
-      'Sipariş Hareketleri',
-      'Sipariş Stokları',
-      'Pazaryeri Hakediş',
-      'Fatura Karlılık',
-      'Günlük Rapor',
-      'Sayım Rapor Liste',
-      'Stok Hareketleri',
-      'Stok Bakiyeleri',
-      'Kdv Rapor',
-      'Firma/Şube Durum Raporu',
+      { name: 'Cari Bakiye', disabled: true },
+      { name: 'Cari Satışlar', disabled: true },
+      { name: 'Banka Bakiye', disabled: true },
+      { name: 'Kasa Bakiye', disabled: true },
+      { name: 'Stok Devir Hiz', disabled: true },
+      { name: 'Stok', disabled: true },
+      { name: 'Envanter', disabled: true },
+      { name: 'Fatura Hareketleri', disabled: true },
+      { name: 'Sipariş Hareketleri', disabled: true },
+      { name: 'Sipariş Stokları', disabled: true },
+      { name: 'Pazaryeri Hakediş', disabled: true },
+      { name: 'Fatura Karlılık', disabled: true },
+      { name: 'Günlük Rapor', disabled: true },
+      { name: 'Sayım Rapor Liste', disabled: true },
+      { name: 'Stok Hareketleri', disabled: true },
+      { name: 'Stok Bakiyeleri', disabled: true },
+      { name: 'Kdv Rapor', disabled: true },
+      { name: 'Firma/Şube Durum Raporu', disabled: true },
     ],
   },
   {
     name: 'Ayarlar',
     icon: <Settings className="h-5 w-5" />,
     subItems: [
-      'Kullanıcılar',
-      'Rol Grupları',
-      'Tanımlar',
-      'Firma',
-      'Günlükler',
-      'Servis Şablonları',
-      'Yedekleme',
-      'Bildirimler',
-      'Queue Workers',
+      { name: 'Kullanıcılar', disabled: true },
+      { name: 'Rol Grupları', disabled: true },
+      { name: 'Tanımlar', disabled: true },
+      { name: 'Firma', disabled: true },
+      { name: 'Günlükler', disabled: true },
+      { name: 'Servis Şablonları', disabled: true },
+      { name: 'Yedekleme', disabled: true },
+      { name: 'Bildirimler', disabled: true },
+      { name: 'Queue Workers', disabled: true },
     ],
   },
   {
     name: 'Servisler',
     icon: <Server className="h-5 w-5" />,
     subItems: [
-      'Xml Stok Servisi',
-      'NetGsm Sms',
-      'Mail Servisi',
-      'PayTR Ödeme Servisi',
+      { name: 'Xml Stok Servisi', disabled: true },
+      { name: 'NetGsm Sms', disabled: true },
+      { name: 'Mail Servisi', disabled: true },
+      { name: 'PayTR Ödeme Servisi', disabled: true },
     ],
   },
   {
@@ -176,7 +190,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onMenuItemClick }) => {
   const logoSrc = mounted && (theme === 'dark' || resolvedTheme === 'dark') ? '/logo-light.svg' : '/logo-dark.svg';
 
   if (!mounted) {
-    return null; // or a loading placeholder
+    return null;
   }
 
   return (
@@ -232,12 +246,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onMenuItemClick }) => {
                   <div className="ml-4 mt-1">
                     {item.subItems.map((subItem) => (
                       <Button
-                        key={subItem}
+                        key={subItem.name}
                         variant="ghost"
                         className="w-full justify-start text-sm py-1 px-2 mb-1 text-sidebar-text hover:bg-sidebar-hover"
-                        onClick={() => onMenuItemClick(subItem)}
+                        onClick={() => !subItem.disabled && onMenuItemClick(subItem.name)}
+                        disabled={subItem.disabled}
                       >
-                        <span className="truncate">{subItem}</span>
+                        <Circle className="h-1 w-1 mr-2" />
+                        <span className="truncate">{subItem.name}</span>
                       </Button>
                     ))}
                   </div>
