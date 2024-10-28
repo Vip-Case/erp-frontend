@@ -28,6 +28,7 @@ import QuickStock from '@/components/QuickStock';
 import Campaigns from '@/components/Campaigns';
 import CampaignDialog from '@/components/Campaigns/CampaignDialog';
 import Categories from '@/components/Categories';
+import Properties from '@/components/Properties';
 
 export default function Home() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -149,6 +150,7 @@ export default function Home() {
             {activeTab === 'Hızlı Stok' && <QuickStock />}
             {activeTab === 'Kampanyalar' && <Campaigns />}
             {activeTab === 'Kategoriler' && <Categories />}
+            {activeTab === 'Özellikler' && <Properties />}
           </TabContainer>
         </main>
       </div>

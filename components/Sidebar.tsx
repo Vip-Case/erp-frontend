@@ -52,6 +52,7 @@ const menuItems = [
       'Hizmet - Masraflar',
       'Hareketler',
       'Kategoriler',
+      'Özellikler',
       'Fişler',
       'Bundle/Set Stoklar',
       'Bundle/Set Stok Formu',
@@ -98,7 +99,7 @@ const menuItems = [
   {
     name: 'Kartlar',
     icon: <ClipboardList className="h-5 w-5" />,
-    subItems: ['Özellikler', 'Kategoriler'],
+    subItems: ['Şubeler'],
   },
   {
     name: 'Raporlar',

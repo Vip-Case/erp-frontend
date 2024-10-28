@@ -2,11 +2,15 @@
 
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, X, Edit2 } from 'lucide-react';
-import { TagInput } from "@/components/ui/tag-input";
+import { Plus, X, Check } from 'lucide-react';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import {
     Table,
     TableBody,
@@ -20,176 +24,224 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
-    DialogFooter,
+    DialogTrigger,
 } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
-interface Property {
-    id: number;
-    name: string;
-    values: string[];
+// Mock data for available properties
+const availableProperties = [
+    {
+        id: 1,
+        name: 'Renk',
+        values: ['Kırmızı', 'Mavi', 'Yeşil', 'Siyah', 'Beyaz']
+    },
+    {
+        id: 2,
+        name: 'Beden',
+        values: ['S', 'M', 'L', 'XL', 'XXL']
+    },
+    {
+        id: 3,
+        name: 'Materyal',
+        values: ['Pamuk', 'Polyester', 'Yün', 'Keten']
+    }
+];
+
+interface SelectedProperty {
+    propertyId: number;
+    propertyName: string;
+    selectedValues: string[];
 }
 
 const StockProperties: React.FC = () => {
-    const [properties, setProperties] = useState<Property[]>([]);
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [editingProperty, setEditingProperty] = useState<Property | null>(null);
-    const [newProperty, setNewProperty] = useState<{ name: string; values: string[] }>({
-        name: '',
-        values: [],
-    });
+    const [selectedProperties, setSelectedProperties] = useState<SelectedProperty[]>([]);
+    const [valueDialogOpen, setValueDialogOpen] = useState(false);
+    const [activePropertyId, setActivePropertyId] = useState<number | null>(null);
 
     const handleAddProperty = () => {
-        if (newProperty.name && newProperty.values.length > 0) {
-            if (editingProperty) {
-                setProperties(properties.map(prop =>
-                    prop.id === editingProperty.id
-                        ? { ...prop, name: newProperty.name, values: newProperty.values }
-                        : prop
-                ));
-            } else {
-                setProperties([...properties, {
-                    id: Date.now(),
-                    name: newProperty.name,
-                    values: newProperty.values
-                }]);
-            }
-            handleDialogClose();
+        const availableProperty = availableProperties.find(
+            prop => !selectedProperties.some(selected => selected.propertyId === prop.id)
+        );
+
+        if (availableProperty) {
+            setSelectedProperties([
+                ...selectedProperties,
+                {
+                    propertyId: availableProperty.id,
+                    propertyName: availableProperty.name,
+                    selectedValues: []
+                }
+            ]);
         }
     };
 
-    const handleEditProperty = (property: Property) => {
-        setEditingProperty(property);
-        setNewProperty({ name: property.name, values: property.values });
-        setIsDialogOpen(true);
+    const handleRemoveProperty = (propertyId: number) => {
+        setSelectedProperties(selectedProperties.filter(prop => prop.propertyId !== propertyId));
     };
 
-    const handleDeleteProperty = (id: number) => {
-        setProperties(properties.filter(prop => prop.id !== id));
+    const handleValueChange = (propertyId: number, value: string) => {
+        setSelectedProperties(selectedProperties.map(prop => {
+            if (prop.propertyId === propertyId) {
+                const newValues = prop.selectedValues.includes(value)
+                    ? prop.selectedValues.filter(v => v !== value)
+                    : [...prop.selectedValues, value];
+                return { ...prop, selectedValues: newValues };
+            }
+            return prop;
+        }));
     };
 
-    const handleDialogClose = () => {
-        setIsDialogOpen(false);
-        setNewProperty({ name: '', values: [] });
-        setEditingProperty(null);
+    const openValueDialog = (propertyId: number) => {
+        setActivePropertyId(propertyId);
+        setValueDialogOpen(true);
     };
 
-    const openNewPropertyDialog = () => {
-        setEditingProperty(null);
-        setNewProperty({ name: '', values: [] });
-        setIsDialogOpen(true);
+    const getPropertyValues = (propertyId: number) => {
+        const property = availableProperties.find(p => p.id === propertyId);
+        return property ? property.values : [];
     };
 
     return (
-        <Card className="h-auto">
+        <Card>
             <CardContent className="pt-6">
-                <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-lg font-semibold">Özellikler</h3>
-                    <Button variant="outline" size="sm" onClick={openNewPropertyDialog}>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Yeni Özellik Ekle
-                    </Button>
-                </div>
+                <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                        <h3 className="text-lg font-semibold">Stok Özellikleri</h3>
+                        <Button
+                            variant="outline"
+                            onClick={handleAddProperty}
+                            disabled={selectedProperties.length === availableProperties.length}
+                        >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Özellik Ekle
+                        </Button>
+                    </div>
 
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>
-                                {editingProperty ? 'Özellik Düzenle' : 'Yeni Özellik Ekle'}
-                            </DialogTitle>
-                        </DialogHeader>
-                        <div className="grid gap-4 py-4">
-                            <div>
-                                <Label htmlFor="propertyName">Özellik Adı</Label>
-                                <Input
-                                    id="propertyName"
-                                    value={newProperty.name}
-                                    onChange={(e) => setNewProperty({ ...newProperty, name: e.target.value })}
-                                    placeholder="Özellik adını giriniz"
-                                />
-                            </div>
-                            <div>
-                                <Label htmlFor="propertyValues">Özellik Değerleri</Label>
-                                <TagInput
-                                    id="propertyValues"
-                                    placeholder="Değer girin ve Enter'a basın"
-                                    tags={newProperty.values}
-                                    className="mt-1"
-                                    onTagsChange={(newTags) =>
-                                        setNewProperty({ ...newProperty, values: newTags })
-                                    }
-                                />
-                                <p className="text-sm text-muted-foreground mt-1">
-                                    Her bir değeri girdikten sonra Enter tuşuna basın
-                                </p>
-                            </div>
-                        </div>
-                        <DialogFooter>
-                            <Button variant="outline" onClick={handleDialogClose}>
-                                İptal
-                            </Button>
-                            <Button
-                                onClick={handleAddProperty}
-                                disabled={!newProperty.name || newProperty.values.length === 0}
-                            >
-                                {editingProperty ? 'Güncelle' : 'Ekle'}
-                            </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Özellik Adı</TableHead>
-                            <TableHead>Özellik Değerleri</TableHead>
-                            <TableHead className="w-[100px]">İşlemler</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {properties.map((property) => (
-                            <TableRow key={property.id}>
-                                <TableCell>{property.name}</TableCell>
-                                <TableCell>
-                                    <div className="flex flex-wrap gap-1">
-                                        {property.values.map((value, index) => (
-                                            <span
-                                                key={index}
-                                                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary"
-                                            >
-                                                {value}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </TableCell>
-                                <TableCell>
-                                    <div className="flex space-x-2">
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => handleEditProperty(property)}
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Özellik</TableHead>
+                                <TableHead>Değerler</TableHead>
+                                <TableHead className="w-[100px]">İşlemler</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {selectedProperties.map((property) => (
+                                <TableRow key={property.propertyId}>
+                                    <TableCell className="font-medium">
+                                        <Select
+                                            value={property.propertyId.toString()}
+                                            onValueChange={(value) => {
+                                                const newPropertyId = parseInt(value);
+                                                const newProperty = availableProperties.find(p => p.id === newPropertyId);
+                                                if (newProperty) {
+                                                    setSelectedProperties(prev => prev.map(p => 
+                                                        p.propertyId === property.propertyId
+                                                            ? { ...p, propertyId: newPropertyId, propertyName: newProperty.name, selectedValues: [] }
+                                                            : p
+                                                    ));
+                                                }
+                                            }}
                                         >
-                                            <Edit2 className="h-4 w-4" />
-                                        </Button>
+                                            <SelectTrigger>
+                                                <SelectValue>{property.propertyName}</SelectValue>
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {availableProperties
+                                                    .filter(p => p.id === property.propertyId || 
+                                                        !selectedProperties.some(sp => sp.propertyId === p.id))
+                                                    .map(p => (
+                                                        <SelectItem key={p.id} value={p.id.toString()}>
+                                                            {p.name}
+                                                        </SelectItem>
+                                                    ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Dialog open={valueDialogOpen && activePropertyId === property.propertyId} 
+                                               onOpenChange={(open) => {
+                                                   if (!open) {
+                                                       setValueDialogOpen(false);
+                                                       setActivePropertyId(null);
+                                                   }
+                                               }}>
+                                            <DialogTrigger asChild>
+                                                <Button
+                                                    variant="outline"
+                                                    className="w-full justify-start"
+                                                    onClick={() => openValueDialog(property.propertyId)}
+                                                >
+                                                    {property.selectedValues.length > 0 ? (
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {property.selectedValues.map(value => (
+                                                                <Badge key={value} variant="secondary">
+                                                                    {value}
+                                                                </Badge>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        "Değer seçin..."
+                                                    )}
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogContent>
+                                                <DialogHeader>
+                                                    <DialogTitle>{property.propertyName} Değerleri</DialogTitle>
+                                                </DialogHeader>
+                                                <ScrollArea className="h-[300px] w-full rounded-md border p-4">
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        {getPropertyValues(property.propertyId).map((value) => (
+                                                            <Button
+                                                                key={value}
+                                                                variant={property.selectedValues.includes(value) ? "default" : "outline"}
+                                                                onClick={() => handleValueChange(property.propertyId, value)}
+                                                                className="justify-start"
+                                                            >
+                                                                <Check className={`mr-2 h-4 w-4 ${
+                                                                    property.selectedValues.includes(value) ? "opacity-100" : "opacity-0"
+                                                                }`} />
+                                                                {value}
+                                                            </Button>
+                                                        ))}
+                                                    </div>
+                                                </ScrollArea>
+                                            </DialogContent>
+                                        </Dialog>
+                                    </TableCell>
+                                    <TableCell>
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            onClick={() => handleDeleteProperty(property.id)}
+                                            onClick={() => handleRemoveProperty(property.propertyId)}
                                         >
                                             <X className="h-4 w-4" />
                                         </Button>
-                                    </div>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                        {properties.length === 0 && (
-                            <TableRow>
-                                <TableCell colSpan={3} className="text-center text-muted-foreground">
-                                    Henüz özellik eklenmemiş
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                            {selectedProperties.length === 0 && (
+                                <TableRow>
+                                    <TableCell colSpan={3} className="text-center text-muted-foreground">
+                                        Henüz özellik eklenmemiş
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+
+                    {selectedProperties.length > 0 && (
+                        <div className="flex justify-end space-x-2">
+                            <Button variant="outline">
+                                İptal
+                            </Button>
+                            <Button>
+                                Kaydet
+                            </Button>
+                        </div>
+                    )}
+                </div>
             </CardContent>
         </Card>
     );
