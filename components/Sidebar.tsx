@@ -50,14 +50,14 @@ const menuItems = [
     subItems: [
       { name: 'Stok Listesi', disabled: false },
       { name: 'Stok Formu', disabled: false },
-      { name: 'Hizmet - Masraflar', disabled: false },
+      { name: 'Hizmet - Masraflar', disabled: true },
       { name: 'Hareketler', disabled: false },
       { name: 'Kategoriler', disabled: false },
-      { name: 'Fişler', disabled: false },
+      { name: 'Fişler', disabled: true },
       { name: 'Bundle/Set Stoklar', disabled: false },
       { name: 'Bundle/Set Stok Formu', disabled: false },
       { name: 'Hızlı Stok', disabled: false },
-      { name: 'Kampanyalar', disabled: false },
+      { name: 'Kampanyalar', disabled: true },
     ],
   },
   {
