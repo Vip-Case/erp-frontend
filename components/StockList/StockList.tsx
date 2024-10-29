@@ -1,4 +1,5 @@
 'use client';
+
 import React, { useRef, useState, useEffect } from 'react';
 import DataGrid, {
   Column,
@@ -11,15 +12,10 @@ import DataGrid, {
   Scrolling,
   GroupPanel,
   Grouping,
-  MasterDetail,
   Lookup,
   Summary,
   TotalItem,
-  GroupItem,
   ValueFormat,
-  RequiredRule,
-  RangeRule,
-  StringLengthRule, 
   ColumnChooser,
   ColumnChooserSearch,
   ColumnChooserSelection,
@@ -32,8 +28,6 @@ import DataGrid, {
 import { Workbook } from 'exceljs';
 import { saveAs } from 'file-saver-es';
 import { exportDataGrid } from 'devextreme/excel_exporter';
-import { createStore } from 'devextreme-aspnet-data-nojquery';
-import MasterDetailGrid from './MasterDetailGrid';
 import { Import, Settings, X } from 'lucide-react';
 import { DataType, HorizontalAlignment, VerticalAlignment } from 'devextreme/common';
 import {
@@ -43,12 +37,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-
-const url = 'https://js.devexpress.com/Demos/Mvc/api/DataGridWebApi';
+import { StockCard } from './types';
+import { currencyService, ExchangeRate } from '@/lib/services/currency';
 
 const onExporting = (e: DataGridTypes.ExportingEvent) => {
   const workbook = new Workbook();
-  const worksheet = workbook.addWorksheet('Main sheet');
+  const worksheet = workbook.addWorksheet('Stok Listesi');
 
   exportDataGrid({
     component: e.component,
@@ -56,43 +50,18 @@ const onExporting = (e: DataGridTypes.ExportingEvent) => {
     autoFilterEnabled: true,
   }).then(() => {
     workbook.xlsx.writeBuffer().then((buffer) => {
-      saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'DataGrid.xlsx');
+      saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'StokListesi.xlsx');
     });
   });
 };
 
-const createDataSource = (key: string, loadUrl: string) => createStore({
-  key,
-  loadUrl,
-  onBeforeSend: (method, ajaxOptions) => {
-    ajaxOptions.xhrFields = { withCredentials: true };
-  },
-});
-
-const dataSource = createDataSource('OrderID', `${url}/Orders`);
-const customersData = createDataSource('Value', `${url}/CustomersLookup`);
-const shippersData = createDataSource('Value', `${url}/ShippersLookup`);
-
-const searchEditorOptions = { placeholder: 'Search column' };
-
-const filterBuilder = {
-  customOperations: [
-    {
-      name: 'weekends',
-      dataTypes: ['date' as DataType],
-      icon: 'check',
-      hasValue: false,
-      calculateFilterExpression: () => [
-        ['OrderDate', '=', 0],
-        'or',
-      ],
-    },
-  ],
-};
-
+const searchEditorOptions = { placeholder: 'Kolon ara' };
 
 const StockList: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [stockData, setStockData] = useState<StockCard[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [exchangeRates, setExchangeRates] = useState<ExchangeRate | null>(null);
   const dataGridRef = useRef<DataGrid>(null);
   const [filterBuilderPopupPosition, setFilterBuilderPopupPosition] = useState({});
 
@@ -103,7 +72,33 @@ const StockList: React.FC = () => {
       my: { x: 'center' as HorizontalAlignment, y: 'top' as VerticalAlignment },
       offset: { y: 10 },
     });
+
+    const initData = async () => {
+      await Promise.all([
+        fetchStockData(),
+        fetchExchangeRates()
+      ]);
+    };
+
+    initData();
   }, []);
+
+  const fetchExchangeRates = async () => {
+    const rates = await currencyService.getExchangeRates();
+    setExchangeRates(rates);
+  };
+
+  const fetchStockData = async () => {
+    try {
+      const response = await fetch('http://localhost:1303/stockcards/stockCardsWithRelations');
+      const data = await response.json();
+      setStockData(data);
+    } catch (error) {
+      console.error('Error fetching stock data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const clearFilters = () => {
     if (dataGridRef.current) {
@@ -115,14 +110,14 @@ const StockList: React.FC = () => {
     return (
       <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
         <DialogTrigger asChild>
-            <button 
-              className="dx-button dx-button-normal dx-button-mode-contained dx-widget dx-button-has-icon" 
-              title="Ayarlar"
-              style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
-            >
-              <Settings size={18} className='ml-2' />
-              <span className='mr-2'>Ayarlar</span>
-            </button>
+          <button 
+            className="dx-button dx-button-normal dx-button-mode-contained dx-widget dx-button-has-icon" 
+            title="Ayarlar"
+            style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
+          >
+            <Settings size={18} className='ml-2' />
+            <span className='mr-2'>Ayarlar</span>
+          </button>
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
@@ -156,7 +151,6 @@ const StockList: React.FC = () => {
     return (
       <button 
         className="dx-button dx-button-normal dx-button-mode-contained dx-widget" 
-        onClick={clearFilters}
         style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
       >
         <Import size={18} className='ml-2' />
@@ -165,27 +159,36 @@ const StockList: React.FC = () => {
     );
   };
 
+  const calculateTotalQuantity = (rowData: StockCard) => {
+    return rowData.StockCardWarehouse.reduce((total, warehouse) => {
+      return total + parseInt(warehouse.quantity, 10);
+    }, 0);
+  };
+
+  const renderPriceWithTRY = (price: number, currency: string) => {
+    if (!exchangeRates || currency !== 'USD') return price.toFixed(2);
+    
+    const tryPrice = price * exchangeRates.USD_TRY;
+    return `${price.toFixed(2)} (₺${tryPrice.toFixed(2)})`;
+  };
+
   return (
     <div className="p-4">
       <DataGrid
         ref={dataGridRef}
-        id="gridContainer"
-        filterBuilder={filterBuilder}
-        dataSource={dataSource}
-        keyExpr="OrderID"
+        dataSource={stockData}
         showBorders={true}
         showRowLines={true}
         showColumnLines={true}
         width="100%"
         height={600}
-        remoteOperations={true}
-        onExporting={onExporting}
-        columnHidingEnabled={true}
         allowColumnResizing={true}
         columnResizingMode='widget'
         allowColumnReordering={true}
         wordWrapEnabled={true}
         columnWidth={150}
+        onExporting={onExporting}
+        loadPanel={{ enabled: loading }}
       >
         <SearchPanel visible={true} width={240} placeholder="Genel arama..." />
         <GroupPanel visible={true} />
@@ -197,39 +200,87 @@ const StockList: React.FC = () => {
           <ColumnChooserSearch enabled={true} editorOptions={searchEditorOptions} />
           <ColumnChooserSelection allowSelectAll={true} selectByClick={true} recursive={true} />
         </ColumnChooser>
-        <MasterDetail enabled={true} component={MasterDetailGrid} />
         <FilterPanel visible={true} />
         <FilterBuilderPopup position={filterBuilderPopupPosition} />
         <Grouping autoExpandAll={false} />
-        <Column dataField="OrderID" caption="Order ID" dataType="number" />
-        <Column dataField="OrderDate" dataType="date">
-          <RequiredRule message="The OrderDate field is required." />
-        </Column>
-        <Column dataField="CustomerID" caption="Customer">
-          <Lookup dataSource={customersData} valueExpr="Value" displayExpr="Text" />
-          <StringLengthRule max={5} message="The field Customer must be a string with a maximum length of 5." />
-        </Column>
-        <Column dataField="Freight">
-          <HeaderFilter groupInterval={100} />
-          <RangeRule min={0} max={2000} message="The field Freight must be between 0 and 2000." />
-        </Column>
-        <Column dataField="ShipCountry" caption="Ship Country" dataType="string">
-          <StringLengthRule max={15} message="The field ShipCountry must be a string with a maximum length of 15." />
-        </Column>
-        <Column dataField="ShipVia" caption="Shipping Company" dataType="number">
-          <Lookup dataSource={shippersData} valueExpr="Value" displayExpr="Text" />
-        </Column>
-        <Summary>
-          <TotalItem column="Freight" summaryType="sum">
-            <ValueFormat type="decimal" precision={2} />
-          </TotalItem>
-          <GroupItem column="Freight" summaryType="sum">
-            <ValueFormat type="decimal" precision={2} />
-          </GroupItem>
-          <GroupItem summaryType="count" />
-        </Summary>
         <Scrolling mode="virtual" columnRenderingMode='virtual' rowRenderingMode='virtual' />
         <Export enabled={true} allowExportSelectedData={true} />
+
+        <Column dataField="productCode" caption="Stok Kodu" fixed={true} />
+        <Column dataField="productName" caption="Stok Adı" />,
+        <Column caption="Kategoriler">
+          {stockData[0]?.Categories.map(category => (
+            <Column 
+              key={category.category.id}
+              caption={category.category.categoryName}
+              calculateCellValue={(rowData: StockCard) => {
+                const categoryData = rowData.Categories.find(
+                  w => w.category.id === category.category.id
+                );
+                return categoryData ? categoryData.category.categoryName : '';
+              }}
+              dataType="string"
+            />
+          ))}
+        </Column>
+        <Column dataField="Brand.brandName" caption="Marka" />
+        <Column dataField="unit" caption="Birim" />
+        <Column 
+          caption="Toplam Stok" 
+          calculateCellValue={calculateTotalQuantity}
+          dataType="number"
+          format="#,##0"
+        />
+        <Column caption="Depolar">
+          {stockData[0]?.StockCardWarehouse.map(warehouse => (
+            <Column 
+              key={warehouse.warehouse.id}
+              caption={warehouse.warehouse.warehouseName}
+              calculateCellValue={(rowData: StockCard) => {
+                const warehouseData = rowData.StockCardWarehouse.find(
+                  w => w.warehouse.id === warehouse.warehouse.id
+                );
+                return warehouseData ? parseInt(warehouseData.quantity, 10) : 0;
+              }}
+              dataType="number"
+              format="#,##0"
+            />
+          ))}
+        </Column>
+        <Column caption="Fiyatlar">
+          {stockData[0]?.StockCardPriceLists.map(priceList => (
+            <Column 
+              key={priceList.priceList.id}
+              caption={`${priceList.priceList.priceListName} (${priceList.priceList.currency})`}
+              calculateCellValue={(rowData: StockCard) => {
+                const priceData = rowData.StockCardPriceLists.find(
+                  p => p.priceList.id === priceList.priceList.id
+                );
+                if (!priceData) return 0;
+                
+                const price = parseFloat(priceData.price);
+                return priceList.priceList.currency === 'USD' 
+                  ? renderPriceWithTRY(price, 'USD')
+                  : price.toFixed(2);
+              }}
+              cellRender={(cellData: any) => {
+                return <span>{cellData.value}</span>;
+              }}
+            />
+          ))}
+        </Column>
+        <Column dataField="productType" caption="Ürün Tipi" />
+        <Column dataField="stockStatus" caption="Durum" dataType="boolean" />
+        <Column dataField="createdAt" caption="Oluşturma Tarihi" dataType="datetime" format="dd.MM.yyyy HH:mm" />
+
+        <Summary>
+          <TotalItem
+            column="Toplam Stok"
+            summaryType="sum"
+            valueFormat="#,##0"
+          />
+        </Summary>
+
         <Toolbar>
           <Item name='groupPanel' location='before' />
           <Item name="searchPanel" location="after" />

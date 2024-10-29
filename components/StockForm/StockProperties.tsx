@@ -136,7 +136,7 @@ const StockProperties: React.FC = () => {
                                                 const newPropertyId = parseInt(value);
                                                 const newProperty = availableProperties.find(p => p.id === newPropertyId);
                                                 if (newProperty) {
-                                                    setSelectedProperties(prev => prev.map(p => 
+                                                    setSelectedProperties(prev => prev.map(p =>
                                                         p.propertyId === property.propertyId
                                                             ? { ...p, propertyId: newPropertyId, propertyName: newProperty.name, selectedValues: [] }
                                                             : p
@@ -149,7 +149,7 @@ const StockProperties: React.FC = () => {
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {availableProperties
-                                                    .filter(p => p.id === property.propertyId || 
+                                                    .filter(p => p.id === property.propertyId ||
                                                         !selectedProperties.some(sp => sp.propertyId === p.id))
                                                     .map(p => (
                                                         <SelectItem key={p.id} value={p.id.toString()}>
@@ -160,13 +160,13 @@ const StockProperties: React.FC = () => {
                                         </Select>
                                     </TableCell>
                                     <TableCell>
-                                        <Dialog open={valueDialogOpen && activePropertyId === property.propertyId} 
-                                               onOpenChange={(open) => {
-                                                   if (!open) {
-                                                       setValueDialogOpen(false);
-                                                       setActivePropertyId(null);
-                                                   }
-                                               }}>
+                                        <Dialog open={valueDialogOpen && activePropertyId === property.propertyId}
+                                            onOpenChange={(open) => {
+                                                if (!open) {
+                                                    setValueDialogOpen(false);
+                                                    setActivePropertyId(null);
+                                                }
+                                            }}>
                                             <DialogTrigger asChild>
                                                 <Button
                                                     variant="outline"
@@ -199,9 +199,8 @@ const StockProperties: React.FC = () => {
                                                                 onClick={() => handleValueChange(property.propertyId, value)}
                                                                 className="justify-start"
                                                             >
-                                                                <Check className={`mr-2 h-4 w-4 ${
-                                                                    property.selectedValues.includes(value) ? "opacity-100" : "opacity-0"
-                                                                }`} />
+                                                                <Check className={`mr-2 h-4 w-4 ${property.selectedValues.includes(value) ? "opacity-100" : "opacity-0"
+                                                                    }`} />
                                                                 {value}
                                                             </Button>
                                                         ))}

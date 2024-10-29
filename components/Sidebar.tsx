@@ -53,6 +53,7 @@ const menuItems = [
       { name: 'Hizmet - Masraflar', disabled: true },
       { name: 'Hareketler', disabled: false },
       { name: 'Kategoriler', disabled: false },
+      { name: 'Özellikler', disabled: false },
       { name: 'Fişler', disabled: true },
       { name: 'Bundle/Set Stoklar', disabled: false },
       { name: 'Bundle/Set Stok Formu', disabled: false },
@@ -105,14 +106,6 @@ const menuItems = [
       { name: 'BA/BS', disabled: true },
       { name: 'Gelen E-Faturalar', disabled: true },
       { name: 'Gelen E-İrsaliyeler', disabled: true },
-    ],
-  },
-  {
-    name: 'Kartlar',
-    icon: <ClipboardList className="h-5 w-5" />,
-    subItems: [
-      { name: 'Özellikler', disabled: true },
-      { name: 'Kategoriler', disabled: true },
     ],
   },
   {
