@@ -142,5 +142,17 @@ export interface StockCard {
             categoryCode: string;
             parentCategoryId: string;
         };
+        parentCategories: Array<{
+            id: string;
+            categoryName: string;
+            categoryCode: string;
+            parentCategoryId: string | null;
+            parentCategory: {
+                id: string;
+                categoryName: string;
+                categoryCode: string;
+                parentCategoryId: string | null;
+            } | null;
+        }>;
     }>;
 }

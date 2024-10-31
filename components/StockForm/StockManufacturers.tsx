@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Loader2 } from 'lucide-react';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from 'lucide-react';
 import {
     Select,
     SelectContent,
@@ -12,40 +14,104 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { useCurrents } from './hooks/useCurrents';
+import { useBrands } from './hooks/useBrands';
+import { useStockForm } from './hooks/useStockForm';
 
 interface Manufacturer {
     id: number;
-    cari: string;
-    stokAdi: string;
-    kod: string;
-    barkod: string;
-    marka: string;
+    currentId: string;
+    stockName: string;
+    code: string;
+    barcode: string;
+    brandId: string;
 }
 
 const StockManufacturers: React.FC = () => {
     const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
+    const { currents, loading: currentsLoading, error: currentsError } = useCurrents();
+    const { brands, loading: brandsLoading, error: brandsError } = useBrands();
+    const { formState, updateManufacturers } = useStockForm();
+
+    useEffect(() => {
+        // Initialize manufacturers from formState if available
+        if (formState.manufacturers.length > 0) {
+            setManufacturers(formState.manufacturers.map((m, index) => ({
+                id: index + 1,
+                currentId: m.currentId,
+                stockName: m.productName,
+                code: m.productCode,
+                barcode: m.barcode,
+                brandId: m.brandId
+            })));
+        }
+    }, [formState.manufacturers]);
 
     const addManufacturer = () => {
         const newManufacturer: Manufacturer = {
             id: Date.now(),
-            cari: '',
-            stokAdi: '',
-            kod: '',
-            barkod: '',
-            marka: '',
+            currentId: '',
+            stockName: '',
+            code: '',
+            barcode: '',
+            brandId: '',
         };
-        setManufacturers([...manufacturers, newManufacturer]);
+        const updatedManufacturers = [...manufacturers, newManufacturer];
+        setManufacturers(updatedManufacturers);
+        updateFormState(updatedManufacturers);
     };
 
     const removeManufacturer = (id: number) => {
-        setManufacturers(manufacturers.filter(m => m.id !== id));
+        const updatedManufacturers = manufacturers.filter(m => m.id !== id);
+        setManufacturers(updatedManufacturers);
+        updateFormState(updatedManufacturers);
     };
 
     const updateManufacturer = (id: number, field: keyof Manufacturer, value: string) => {
-        setManufacturers(manufacturers.map(m =>
+        const updatedManufacturers = manufacturers.map(m =>
             m.id === id ? { ...m, [field]: value } : m
-        ));
+        );
+        setManufacturers(updatedManufacturers);
+        updateFormState(updatedManufacturers);
     };
+
+    const updateFormState = (manufacturers: Manufacturer[]) => {
+        updateManufacturers(manufacturers.map(m => ({
+            productCode: m.code,
+            productName: m.stockName,
+            barcode: m.barcode,
+            brandId: m.brandId,
+            currentId: m.currentId
+        })));
+    };
+
+    if (currentsLoading || brandsLoading) {
+        return (
+            <div className="flex items-center justify-center h-32">
+                <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
+        );
+    }
+
+    if (currentsError || brandsError) {
+        return (
+            <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{currentsError || brandsError}</AlertDescription>
+            </Alert>
+        );
+    }
+
+    if (currents.length === 0) {
+        return (
+            <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                    İthalat, İthalat/İhracat veya Tedarikçi tipinde cari bulunamadı.
+                </AlertDescription>
+            </Alert>
+        );
+    }
 
     return (
         <div className="space-y-4 p-4">
@@ -68,16 +134,18 @@ const StockManufacturers: React.FC = () => {
                         <div className="grid gap-4">
                             <div>
                                 <Select
-                                    value={manufacturer.cari}
-                                    onValueChange={(value) => updateManufacturer(manufacturer.id, 'cari', value)}
+                                    value={manufacturer.currentId}
+                                    onValueChange={(value) => updateManufacturer(manufacturer.id, 'currentId', value)}
                                 >
-                                    <SelectTrigger className="w-full">
+                                    <SelectTrigger>
                                         <SelectValue placeholder="Cari seçin" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="cari1">Cari 1</SelectItem>
-                                        <SelectItem value="cari2">Cari 2</SelectItem>
-                                        <SelectItem value="cari3">Cari 3</SelectItem>
+                                        {currents.map((current) => (
+                                            <SelectItem key={current.id} value={current.id}>
+                                                {current.currentName} ({current.currentCode}) - {current.currentType}
+                                            </SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -86,32 +154,42 @@ const StockManufacturers: React.FC = () => {
                                 <div>
                                     <Input
                                         placeholder="Stok Adı"
-                                        value={manufacturer.stokAdi}
-                                        onChange={(e) => updateManufacturer(manufacturer.id, 'stokAdi', e.target.value)}
+                                        value={manufacturer.stockName}
+                                        onChange={(e) => updateManufacturer(manufacturer.id, 'stockName', e.target.value)}
                                     />
                                 </div>
                                 <div>
                                     <Input
                                         placeholder="Kod"
-                                        value={manufacturer.kod}
-                                        onChange={(e) => updateManufacturer(manufacturer.id, 'kod', e.target.value)}
+                                        value={manufacturer.code}
+                                        onChange={(e) => updateManufacturer(manufacturer.id, 'code', e.target.value)}
                                     />
                                 </div>
                                 <div>
                                     <Input
                                         placeholder="Barkod"
-                                        value={manufacturer.barkod}
-                                        onChange={(e) => updateManufacturer(manufacturer.id, 'barkod', e.target.value)}
+                                        value={manufacturer.barcode}
+                                        onChange={(e) => updateManufacturer(manufacturer.id, 'barcode', e.target.value)}
                                     />
                                 </div>
                             </div>
 
                             <div>
-                                <Input
-                                    placeholder="Marka"
-                                    value={manufacturer.marka}
-                                    onChange={(e) => updateManufacturer(manufacturer.id, 'marka', e.target.value)}
-                                />
+                                <Select
+                                    value={manufacturer.brandId}
+                                    onValueChange={(value) => updateManufacturer(manufacturer.id, 'brandId', value)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Marka seçin" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {brands.map((brand) => (
+                                            <SelectItem key={brand.id} value={brand.id}>
+                                                {brand.brandName} ({brand.brandCode})
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </div>
                     </CardContent>

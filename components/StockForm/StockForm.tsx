@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,495 +10,745 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tag, TagInput } from 'emblor';
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, Info, Printer, RefreshCcw, CloudDownload, DownloadCloud } from 'lucide-react';
+import { Plus, RefreshCcw, AlertCircle, Loader2, ImagePlus, Trash2 } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
 import StockProperties from './StockProperties';
 import StockManufacturers from './StockManufacturers';
-import StockBranch from './StockBranch';
 import StockUnits from './StockUnits';
+import CategorySelector from './CategorySelector';
+import { Alert, AlertDescription } from '../ui/alert';
+import { useWarehouses } from './hooks/useWarehouses';
+import { useBrands } from './hooks/useBrands';
+import { useCategories } from './hooks/useCategories';
+import ImagePreview from './ImagePreview';
+import { useStockForm } from './hooks/useStockForm';
+
+const currencies = [
+  { value: 'TRY', label: '₺ TRY' },
+  { value: 'USD', label: '$ USD' },
+  { value: 'EUR', label: '€ EUR' }
+];
+
+const productTypes = [
+  { value: 'BasitUrun', label: 'Basit Ürün' },
+  { value: 'VaryasyonluUrun', label: 'Varyasyonlu Ürün' },
+  { value: 'DijitalUrun', label: 'Dijital Ürün' },
+  { value: 'Hizmet', label: 'Hizmet' }
+];
+
+const units = [
+  { value: 'Adet', label: 'Adet' },
+  { value: 'Kg', label: 'Kg' },
+  { value: 'Lt', label: 'Lt' },
+  { value: 'M', label: 'M' },
+  { value: 'M2', label: 'M2' },
+  { value: 'M3', label: 'M3' },
+  { value: 'Paket', label: 'Paket' },
+  { value: 'Koli', label: 'Koli' },
+  { value: 'Kutu', label: 'Kutu' },
+  { value: 'Ton', label: 'Ton' }
+];
+
+interface FormErrors {
+  productName?: string;
+  productCode?: string;
+  unit?: string;
+  brandId?: string;
+  maliyetFiyat?: string;
+  categories?: string;
+}
 
 const StockForm: React.FC = () => {
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState('genel');
   const [isActive, setIsActive] = useState(true);
   const [isSerili, setIsSerili] = useState(false);
   const [isYerli, setIsYerli] = useState(false);
   const [barcodes, setBarcodes] = useState<Tag[]>([]);
-  const [codes, setCodes] = useState<Tag[]>([]);
   const [marketNames, setMarketNames] = useState<Tag[]>([]);
   const [activeTagIndex, setActiveTagIndex] = useState<number | null>(null);
-  const [faturaAd, setFaturaAd] = useState('');
-  const [satisFiyat, setSatisFiyat] = useState('0,00');
-  const [satisFiyatKdv, setSatisFiyatKdv] = useState('0,00');
-  const [kdvOrani, setKdvOrani] = useState('20,00');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [images, setImages] = useState<string[]>([]);
+  const [imageUploadLoading, setImageUploadLoading] = useState(false);
+  const [previewImage, setPreviewImage] = useState<number | null>(null);
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
+  const { warehouses, loading: warehousesLoading, error: warehousesError } = useWarehouses();
+  const { brands, loading: brandsLoading, error: brandsError } = useBrands();
+  const { refreshCategories, loading: categoriesLoading } = useCategories();
+
+  const {
+    formState,
+    loading: saveLoading,
+    error: saveError,
+    updateStockCard,
+    updateBarcodes,
+    updateMarketNames,
+    updateCategories,
+    updateWarehouse,
+    updateEFatura,
+    saveStockCard
+  } = useStockForm();
+
+  const validateForm = (): boolean => {
+    const errors: FormErrors = {};
+
+    if (!formState.stockCard.productName.trim()) {
+      errors.productName = 'Stok adı zorunludur';
+    }
+
+    if (!formState.stockCard.productCode.trim()) {
+      errors.productCode = 'Stok kodu zorunludur';
+    }
+
+    if (!formState.stockCard.unit) {
+      errors.unit = 'Birim seçimi zorunludur';
+    }
+
+    if (!formState.stockCard.brandId) {
+      errors.brandId = 'Marka seçimi zorunludur';
+    }
+
+    if (formState.stockCard.maliyetFiyat < 0) {
+      errors.maliyetFiyat = 'Maliyet fiyatı 0\'dan küçük olamaz';
+    }
+
+    if (selectedCategories.length === 0) {
+      errors.categories = 'En az bir kategori seçilmelidir';
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSave = async () => {
+    if (!validateForm()) {
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: "Lütfen zorunlu alanları doldurun",
+      });
+      return;
+    }
+
+    try {
+      updateBarcodes(barcodes.map(tag => tag.text));
+      updateMarketNames(marketNames.map(tag => tag.text));
+      updateCategories(selectedCategories);
+
+      await saveStockCard();
+      
+      toast({
+        title: "Başarılı",
+        description: "Stok kartı başarıyla kaydedildi",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Stok kartı kaydedilirken bir hata oluştu",
+      });
+    }
+  };
+
+  const handleImageUpload = async () => {
+    try {
+      setImageUploadLoading(true);
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.multiple = true;
+
+      input.onchange = async (e) => {
+        const files = (e.target as HTMLInputElement).files;
+        if (files) {
+          const newImages: string[] = [];
+          for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const reader = new FileReader();
+            await new Promise((resolve) => {
+              reader.onload = (e) => {
+                if (e.target?.result) {
+                  newImages.push(e.target.result as string);
+                }
+                resolve(null);
+              };
+              reader.readAsDataURL(file);
+            });
+          }
+          setImages((prev) => [...prev, ...newImages]);
+        }
+      };
+
+      input.click();
+    } catch (error) {
+      console.error('Error uploading images:', error);
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Resimler yüklenirken bir hata oluştu",
+      });
+    } finally {
+      setImageUploadLoading(false);
+    }
+  };
+
+  const handleNavigatePreview = (direction: 'prev' | 'next') => {
+    if (previewImage === null) return;
+
+    if (direction === 'prev' && previewImage > 0) {
+      setPreviewImage(previewImage - 1);
+    } else if (direction === 'next' && previewImage < images.length - 1) {
+      setPreviewImage(previewImage + 1);
+    }
+  };
 
   return (
-    <div className="flex flex-col h-auto">
-      <div className="flex justify-between items-center mb-4 p-4">
-        <h2 className="text-2xl font-bold">Stok Formu</h2>
-        <div className="flex space-x-2">
-          <Button variant="default">
-            <Printer className="mr-2 h-4 w-4" />
-            KAYDET
-          </Button>
+    <div className="flex flex-col h-full w-full">
+      <div className="flex justify-between items-center mb-4 px-4 pt-4">
+        <div className="flex items-center space-x-4">
+          <h2 className="text-2xl font-bold">Stok Formu</h2>
+          <div className="flex items-center space-x-2">
+            <Switch
+              checked={isActive}
+              onCheckedChange={(checked) => {
+                setIsActive(checked);
+                updateStockCard('stockStatus', checked);
+              }}
+              id="active-status"
+            />
+            <Label htmlFor="active-status" className="font-medium">
+              {isActive ? 'Aktif' : 'Pasif'}
+            </Label>
+          </div>
         </div>
+        <Button 
+          variant="default"
+          onClick={handleSave}
+          disabled={saveLoading}
+        >
+          {saveLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Kaydet
+        </Button>
       </div>
 
-      <div className="flex-grow overflow-auto">
-        <div className="flex h-auto">
-            <Tabs defaultValue="genel" className="h-auto flex flex-col">
-              <TabsList className="grid w-full grid-cols-10 mb-4">
-                <TabsTrigger value="genel">Genel</TabsTrigger>
-                <TabsTrigger value="diger">Diğer</TabsTrigger>
-                <TabsTrigger value="resmi-fatura">Resmi Fatura</TabsTrigger>
-                <TabsTrigger value="ozellikler">Özellikler</TabsTrigger>
-                <TabsTrigger value='varyasyonlar'>Varyantlar</TabsTrigger>
-                <TabsTrigger value="uretciler">Üreticiler</TabsTrigger>
-                <TabsTrigger value="birimler">Birimler</TabsTrigger>
-                <TabsTrigger value="sube">Şube</TabsTrigger>
-                <TabsTrigger value="pazaryeri">Pazaryerleri</TabsTrigger>
-                <TabsTrigger value="hareket">Hareketler</TabsTrigger>
-              </TabsList>
+      {saveError && (
+        <Alert variant="destructive" className="mx-4 mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{saveError}</AlertDescription>
+        </Alert>
+      )}
 
-              <TabsContent value="genel" className="h-[calc(100%-3rem)] overflow-auto">
-                <Card className="h-auto">
-                  <CardContent className="pt-6">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="col-span-2 flex items-center space-x-2">
-                        <div className="flex-grow">
-                          <Label htmlFor="kategori">Kategori</Label>
-                          <Select>
-                            <SelectTrigger>
-                              <SelectValue placeholder="- Seçiniz -" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="category1">Kategori 1</SelectItem>
-                              <SelectItem value="category2">Kategori 2</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="flex space-x-2 self-end">
-                          <Button size="icon" variant="outline"><RefreshCcw className="h-4 w-4" /></Button>
-                          <Button size="icon" variant="outline"><Plus className="h-4 w-4" /></Button>
-                        </div>
-                        <div className="flex items-center space-x-2 pt-6">
-                          <Switch
-                            checked={isActive}
-                            onCheckedChange={setIsActive}
-                          />
-                          <Label>Aktif</Label>
-                        </div>
+      <div className="flex-grow overflow-auto px-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-6 mb-4">
+            <TabsTrigger value="genel">Genel</TabsTrigger>
+            <TabsTrigger value="diger">Diğer</TabsTrigger>
+            <TabsTrigger value="resmi-fatura">Resmi Fatura</TabsTrigger>
+            <TabsTrigger value="ozellikler">Özellikler</TabsTrigger>
+            <TabsTrigger value="uretciler">Üreticiler</TabsTrigger>
+            <TabsTrigger value="birimler">Birimler</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="genel">
+            <Card>
+              <CardContent className="p-6">
+                <div className="space-y-6">
+                  {/* Categories Section */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-lg font-semibold">Kategoriler</Label>
+                      <div className="flex space-x-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={refreshCategories}
+                          disabled={categoriesLoading}
+                        >
+                          <RefreshCcw className={`h-4 w-4 mr-2 ${categoriesLoading ? 'animate-spin' : ''}`} />
+                          Yenile
+                        </Button>
                       </div>
+                    </div>
+                    <CategorySelector
+                      selectedCategories={selectedCategories}
+                      onCategoryChange={setSelectedCategories}
+                    />
+                    {formErrors.categories && (
+                      <p className="text-sm text-destructive mt-1">{formErrors.categories}</p>
+                    )}
+                  </div>
 
-                      <div>
-                        <Label htmlFor="stokAdi">Stok Adı</Label>
-                        <Input id="stokAdi" />
-                      </div>
+                  {/* Basic Info Section */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="productName">Stok Adı</Label>
+                      <Input
+                        id="productName"
+                        value={formState.stockCard.productName}
+                        onChange={(e) => updateStockCard('productName', e.target.value)}
+                        placeholder="Stok adını giriniz"
+                        className={formErrors.productName ? 'border-destructive' : ''}
+                      />
+                      {formErrors.productName && (
+                        <p className="text-sm text-destructive mt-1">{formErrors.productName}</p>
+                      )}
+                    </div>
+                    <div>
+                      <Label htmlFor="productCode">Stok Kodu</Label>
+                      <Input
+                        id="productCode"
+                        value={formState.stockCard.productCode}
+                        onChange={(e) => updateStockCard('productCode', e.target.value)}
+                        placeholder="Stok kodunu giriniz"
+                        className={formErrors.productCode ? 'border-destructive' : ''}
+                      />
+                      {formErrors.productCode && (
+                        <p className="text-sm text-destructive mt-1">{formErrors.productCode}</p>
+                      )}
+                    </div>
+                  </div>
 
-                      <div className="grid grid-cols-1 gap-1">
-                        <div>
-                          <Label htmlFor="stokKodu">Stok Kodu</Label>
-                          <Input id="stokKodu" />
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="unit">Birim</Label>
+                      <Select
+                        value={formState.stockCard.unit}
+                        onValueChange={(value) => updateStockCard('unit', value)}
+                      >
+                        <SelectTrigger className={formErrors.unit ? 'border-destructive' : ''}>
+                          <SelectValue placeholder="Birim seçin" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {units.map((unit) => (
+                            <SelectItem key={unit.value} value={unit.value}>
+                              {unit.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {formErrors.unit && (
+                        <p className="text-sm text-destructive mt-1">{formErrors.unit}</p>
+                      )}
+                    </div>
+                    <div>
+                      <Label htmlFor="brand">Marka</Label>
+                      {brandsLoading ? (
+                        <div className="flex items-center space-x-2 h-10 px-3 border rounded-md">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span className="text-muted-foreground">Yükleniyor...</span>
                         </div>
-                      </div>
-
-                      <div>
-                        <Label htmlFor="birim">Birim</Label>
-                        <Select>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Adet" />
+                      ) : brandsError ? (
+                        <Alert variant="destructive">
+                          <AlertCircle className="h-4 w-4" />
+                          <AlertDescription>{brandsError}</AlertDescription>
+                        </Alert>
+                      ) : (
+                        <Select
+                          value={formState.stockCard.brandId}
+                          onValueChange={(value) => updateStockCard('brandId', value)}
+                        >
+                          <SelectTrigger className={formErrors.brandId ? 'border-destructive' : ''}>
+                            <SelectValue placeholder="Marka seçin" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="adet">Adet</SelectItem>
-                            <SelectItem value="kg">Kg</SelectItem>
+                            {brands.map((brand) => (
+                              <SelectItem key={brand.id} value={brand.id}>
+                                {brand.brandName} ({brand.brandCode})
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
-                      </div>
+                      )}
+                      {formErrors.brandId && (
+                        <p className="text-sm text-destructive mt-1">{formErrors.brandId}</p>
+                      )}
+                    </div>
+                    <div>
+                      <Label>Stok Tipi</Label>
+                      <Select
+                        value={formState.stockCard.productType}
+                        onValueChange={(value) => updateStockCard('productType', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Stok tipi seçin" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {productTypes.map((type) => (
+                            <SelectItem key={type.value} value={type.value}>
+                              {type.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
 
-                      <div>
-                        <Label htmlFor="brand">Marka</Label>
-                        <Input id="brand" />
-                      </div>
+                  <div className="grid grid-cols-4 gap-4">
+                    <div>
+                      <Label htmlFor="maliyetFiyat">Maliyet</Label>
+                      <Input
+                        id="maliyetFiyat"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={formState.stockCard.maliyetFiyat}
+                        onChange={(e) => updateStockCard('maliyetFiyat', parseFloat(e.target.value))}
+                        className={`text-right ${formErrors.maliyetFiyat ? 'border-destructive' : ''}`}
+                      />
+                      {formErrors.maliyetFiyat && (
+                        <p className="text-sm text-destructive mt-1">{formErrors.maliyetFiyat}</p>
+                      )}
+                    </div>
+                    <div>
+                      <Label>Maliyet Dövizi</Label>
+                      <Select
+                        value={formState.stockCard.maliyetDoviz}
+                        onValueChange={(value) => updateStockCard('maliyetDoviz', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {currencies.map((currency) => (
+                            <SelectItem key={currency.value} value={currency.value}>
+                              {currency.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Depo</Label>
+                      {warehousesLoading ? (
+                        <div className="flex items-center space-x-2 h-10 px-3 border rounded-md">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span className="text-muted-foreground">Yükleniyor...</span>
+                        </div>
+                      ) : warehousesError ? (
+                        <Alert variant="destructive">
+                          <AlertCircle className="h-4 w-4" />
+                          <AlertDescription>{warehousesError}</AlertDescription>
+                        </Alert>
+                      ) : (
+                        <Select
+                          value={formState.stockCardWarehouse[0]?.id}
+                          onValueChange={(value) => updateWarehouse(value, formState.stockCardWarehouse[0]?.quantity || 0)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Depo seçin" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {warehouses.map((warehouse) => (
+                              <SelectItem key={warehouse.id} value={warehouse.id}>
+                                {warehouse.warehouseName} ({warehouse.warehouseCode})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
+                    <div>
+                      <Label htmlFor="quantity">Stok Miktarı</Label>
+                      <Input
+                        id="quantity"
+                        type="number"
+                        min="0"
+                        value={formState.stockCardWarehouse[0]?.quantity || 0}
+                        onChange={(e) => {
+                          const warehouseId = formState.stockCardWarehouse[0]?.id;
+                          if (warehouseId) {
+                            updateWarehouse(warehouseId, parseInt(e.target.value));
+                          }
+                        }}
+                        className="text-right"
+                      />
+                    </div>
+                  </div>
 
-                      {/* Price inputs */}
-                      <div className="col-span-2 grid grid-cols-4 gap-2">
-                        <div>
-                          <Label>Satış Fiyat</Label>
-                          <Input placeholder="0,00" />
-                        </div>
-                        <div>
-                          <Label>Döviz</Label>
-                          <Select>
-                            <SelectTrigger>
-                              <SelectValue placeholder="₺" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="tl">₺</SelectItem>
-                              <SelectItem value="usd">$</SelectItem>
-                              <SelectItem value="eur">€</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label>Kdv</Label>
-                          <Input placeholder="20,00" />
-                        </div>
-                        <div className="flex items-center space-x-2 mt-6">
-                          <Switch id="kdvDahil" />
-                          <Label htmlFor="kdvDahil">Kdv Dahil</Label>
-                        </div>
-                      </div>
+                  {/* Images Section */}
+                  <div className="space-y-2">
+                    <Label className="text-lg font-semibold">Resimler</Label>
+                    <div className="flex items-start space-x-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleImageUpload}
+                        disabled={imageUploadLoading}
+                      >
+                        <ImagePlus className="h-4 w-4 mr-2" />
+                        Ekle
+                      </Button>
+                    </div>
+                  </div>
 
-                      {/* More price inputs */}
-                      <div className="col-span-2 grid grid-cols-4 gap-2">
-                        <div>
-                          <Label>Alış Fiyat</Label>
-                          <Input placeholder="0,00" />
-                        </div>
-                        <div>
-                          <Label>Döviz</Label>
-                          <Select>
-                            <SelectTrigger>
-                              <SelectValue placeholder="₺" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="tl">₺</SelectItem>
-                              <SelectItem value="usd">$</SelectItem>
-                              <SelectItem value="eur">€</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label>Kdv</Label>
-                          <Input placeholder="20,00" />
-                        </div>
-                        <div className="flex items-center space-x-2 mt-6">
-                          <Switch id="kdvDahilAlis" />
-                          <Label htmlFor="kdvDahilAlis">Kdv Dahil</Label>
-                        </div>
-                      </div>
-
-                      {/* Stock Type Properties */}
-                      <div className="col-span-2 space-y-2">
-                        <h3 className="font-semibold">Stok Tipi Özellikleri</h3>
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <Label>Stok Tipi</Label>
-                            <Select>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Ticari Mal" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="ticari">Ticari Mal</SelectItem>
-                                <SelectItem value="hizmet">Hizmet</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div>
-                            <Label>Depo</Label>
-                            <Select>
-                              <SelectTrigger>
-                                <SelectValue placeholder="HAZIRDAĞLI > 1.2 depo" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="depo1">HAZIRDAĞLI {'>'} 1.2 depo</SelectItem>
-                                <SelectItem value="depo2">Depo 2</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Image upload area */}
-                      <div className="col-span-2 flex items-center space-x-2">
-                        <div className="flex-grow col-span-2 border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                          <p>Resim yüklemek için (+) butonuna tıklayınız.</p>
-                        </div>
-                        <div className="flex space-x-2 self-end">
-                          <Button size="icon" variant="outline"><Plus className="h-4 w-4" /></Button>
-                          <Button size="icon" variant="outline"><DownloadCloud className="h-4 w-4" /></Button>
-                        </div>
+                  {images.length === 0 ? (
+                    <div className="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center">
+                      <div className="flex flex-col items-center space-y-2">
+                        <ImagePlus className="h-8 w-8 text-gray-400" />
+                        <p className="text-sm text-muted-foreground">
+                          Resim yüklemek için yukarıdaki butonları kullanın
+                        </p>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              <TabsContent value="diger" className="h-[calc(100%-3rem)] overflow-auto">
-                <Card className="h-auto">
-                  <CardContent className="pt-6">
+                  ) : (
+                    <div className="grid grid-cols-4 gap-4">
+                      {images.map((image, index) => (
+                        <div key={index} className="relative group">
+                          <img
+                            src={image}
+                            alt={`Product ${index + 1}`}
+                            className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                            onClick={() => setPreviewImage(index)}
+                          />
+                          <Button
+                            size="icon"
+                            variant="destructive"
+                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => {
+                              const newImages = [...images];
+                              newImages.splice(index, 1);
+                              setImages(newImages);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <ImagePreview
+                    images={images}
+                    currentIndex={previewImage ?? 0}
+                    isOpen={previewImage !== null}
+                    onClose={() => setPreviewImage(null)}
+                    onNavigate={handleNavigatePreview}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="diger">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="space-y-6">
+                  {/* Switches Section */}
+                  <div className="flex items-center justify-end space-x-4">
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        checked={isSerili}
+                        onCheckedChange={(checked) => {
+                          setIsSerili(checked);
+                          updateStockCard('hasExpirationDate', checked);
+                        }}
+                        id="serili"
+                      />
+                      <Label htmlFor="serili">Serili</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        checked={isYerli}
+                        onCheckedChange={(checked) => {
+                          setIsYerli(checked);
+                          updateStockCard('allowNegativeStock', checked);
+                        }}
+                        id="eksiSeviye"
+                      />
+                      <Label htmlFor="eksiSeviye">Eksi Seviye Satış</Label>
+                    </div>
+                  </div>
+
+                  {/* Location Info */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Sıra</Label>
+                      <Input
+                        value={formState.stockCard.siraNo}
+                        onChange={(e) => updateStockCard('siraNo', e.target.value)}
+                        placeholder="Sıra numarası giriniz"
+                      />
+                    </div>
+                    <div>
+                      <Label>Raf</Label>
+                      <Input
+                        value={formState.stockCard.raf}
+                        onChange={(e) => updateStockCard('raf', e.target.value)}
+                        placeholder="Raf numarası giriniz"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Codes Section */}
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="space-y-2">
+                      <Label>Barkodlar</Label>
+                      <TagInput
+                        tags={barcodes}
+                        setTags={setBarcodes}
+                        placeholder="Barkod girin ve Enter'a basın"
+                        styleClasses={{
+                          input: 'w-full',
+                          tag: { body: 'bg-red-500/10 text-red-500' },
+                        }}
+                        activeTagIndex={activeTagIndex}
+                        setActiveTagIndex={setActiveTagIndex}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Piyasa Adları</Label>
+                      <TagInput
+                        tags={marketNames}
+                        setTags={setMarketNames}
+                        placeholder="Piyasa adı girin ve Enter'a basın"
+                        styleClasses={{
+                          input: 'w-full',
+                          tag: { body: 'bg-blue-500/10 text-blue-500' },
+                        }}
+                        activeTagIndex={activeTagIndex}
+                        setActiveTagIndex={setActiveTagIndex}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Product Details */}
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div>
+                      <Label>GTIP</Label>
+                      <Input
+                        value={formState.stockCard.gtip}
+                        onChange={(e) => updateStockCard('gtip', e.target.value)}
+                        placeholder="GTIP kodunu giriniz"
+                      />
+                    </div>
+                    <div>
+                      <Label>PLU Kodu</Label>
+                      <Input
+                        value={formState.stockCard.pluCode}
+                        onChange={(e) => updateStockCard('pluCode', e.target.value)}
+                        placeholder="PLU kodunu giriniz"
+                      />
+                    </div>
+                    <div>
+                      <Label>Kar Marjı (%)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={formState.stockCard.karMarji}
+                        onChange={(e) => updateStockCard('karMarji', parseFloat(e.target.value))}
+                        className="text-right"
+                      />
+                    </div>
+                    <div>
+                      <Label>Desi</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={formState.stockCard.desi}
+                        onChange={(e) => updateStockCard('desi', parseFloat(e.target.value))}
+                        className="text-right"
+                      />
+                    </div>
+                    <div>
+                      <Label>Adet Böleni</Label>
+                      <Input
+                        type="number"
+                        min="1"
+                        value={formState.stockCard.adetBoleni}
+                        onChange={(e) => updateStockCard('adetBoleni', parseInt(e.target.value))}
+                        className="text-right"
+                      />
+                    </div>
+                    <div>
+                      <Label>Kritik Seviye Miktar</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={formState.stockCard.riskQuantities}
+                        onChange={(e) => updateStockCard('riskQuantities', parseInt(e.target.value))}
+                        className="text-right"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Description Section */}
+                  <div className="space-y-4">
+                    <div>
+                      <Label>Kısa Açıklama</Label>
+                      <Input
+                        value={formState.stockCard.shortDescription}
+                        onChange={(e) => updateStockCard('shortDescription', e.target.value)}
+                        placeholder="Kısa açıklama giriniz"
+                      />
+                    </div>
+                    <div>
+                      <Label>Açıklama</Label>
+                      <Textarea
+                        value={formState.stockCard.description}
+                        onChange={(e) => updateStockCard('description', e.target.value)}
+                        placeholder="Detaylı açıklama giriniz"
+                        className="min-h-[120px] resize-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="resmi-fatura">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Resmi Fatura</h3>
                     <div className="space-y-4">
-                      {/* First Row */}
-                      <div className="grid grid-cols-3 gap-2">
-                        <div>
-                          <Label>Hızlı Satış Grubu</Label>
-                          <Select>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Örn: Muhtelif" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="muhtelif">Örn: Muhtelif</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label>Raf</Label>
-                          <Input placeholder="" />
-                        </div>
-                        <div className="flex items-right ml-auto space-x-2 pt-8">
-                          <div className="flex items-right space-x-2">
-                            <Switch
-                              checked={isSerili}
-                              onCheckedChange={setIsSerili}
-                            />
-                            <Label>Serili</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Switch
-                              checked={isYerli}
-                              onCheckedChange={setIsYerli}
-                            />
-                            <Label>Eksi Seviye Satış</Label>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Barkodlar, Kodlar, Piyasa Adları */}
-                      <div className="space-y-4">
-                        <Label>Barkodlar</Label>
-                        <TagInput
-                          tags={barcodes}
-                          setTags={setBarcodes}
-                          placeholder="Barkod Ekle"
-                          styleClasses={{
-                            input: 'w-full sm:max-w-[350px]',
-                          }}
-                          activeTagIndex={activeTagIndex}
-                          setActiveTagIndex={setActiveTagIndex}
-                        />
-                        <br />
-                        <Label>Kodlar</Label>
-                        <TagInput
-                          tags={codes}
-                          setTags={setCodes}
-                          placeholder="Kod Ekle"
-                          styleClasses={{
-                            input: 'w-full sm:max-w-[350px]',
-                          }}
-                          activeTagIndex={activeTagIndex}
-                          setActiveTagIndex={setActiveTagIndex}
-                        />
-                        <br />
-                        <Label>Piyasa Adları</Label>
-                        <TagInput
-                          tags={marketNames}
-                          setTags={setMarketNames}
-                          placeholder="Piyasa Adı Ekle"
-                          styleClasses={{
-                            input: 'w-full sm:max-w-[350px]',
-                          }}
-                          activeTagIndex={activeTagIndex}
-                          setActiveTagIndex={setActiveTagIndex}
-                        />
-                      </div>
-
-                      {/* GTIP and PLU Row */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label>GTIP</Label>
-                          <Input />
-                        </div>
-                        <div>
-                          <Label>PLU Kodu</Label>
-                          <Select>
-                            <SelectTrigger>
-                              <SelectValue placeholder="" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="plu1">PLU 1</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-
-                      {/* Kar Marjı and PLU No Row */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label>Kar Marjı (%)</Label>
-                          <Input placeholder="0" />
-                        </div>
-                        <div>
-                          <Label>PLU No</Label>
-                          <Input placeholder="0" />
-                        </div>
-                      </div>
-
-                      {/* Desi and Adet Böleni Row */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label>Desi</Label>
-                          <Input placeholder="1" />
-                        </div>
-                        <div>
-                          <Label>Adet Böleni</Label>
-                          <Input placeholder="1" />
-                        </div>
-                      </div>
-
-                      {/* Açıklamalar */}
-                      <div className="space-y-4">
-                        <div>
-                          <Label>Kısa Açıklama</Label>
-                          <Input />
-                        </div>
-                        <div>
-                          <Label>Açıklama</Label>
-                          <Textarea className="min-h-[100px]" />
-                        </div>
-                      </div>
-
-                      {/* Gruplar */}
-                      <div className="grid grid-cols-4 gap-4">
-                        <div>
-                          <Label>Grup 1</Label>
-                          <Select>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Grup 1" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="group1">Grup 1</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label>Grup 2</Label>
-                          <Select>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Grup 2" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="group2">Grup 2</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label>Grup 3</Label>
-                          <Select>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Grup 3" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="group3">Grup 3</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label>Grup 4</Label>
-                          <Select>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Grup 4" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="group4">Grup 4</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-
-                      {/* Kritik Seviye Miktar */}
                       <div>
-                        <Label>Kritik Seviye Miktar</Label>
-                        <Input placeholder="0" />
+                        <Label htmlFor="eFaturaProductName">Ürün Adı</Label>
+                        <Input
+                          id="eFaturaProductName"
+                          value={formState.eFatura[0]?.productName || ''}
+                          onChange={(e) => updateEFatura(
+                            formState.eFatura[0]?.productCode || '',
+                            e.target.value,
+                            formState.eFatura[0]?.stockCardPriceListId || ''
+                          )}
+                          placeholder="Ürün adını giriniz"
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="eFaturaProductCode">Ürün Kodu</Label>
+                        <Input
+                          id="eFaturaProductCode"
+                          value={formState.eFatura[0]?.productCode || ''}
+                          onChange={(e) => updateEFatura(
+                            e.target.value,
+                            formState.eFatura[0]?.productName || '',
+                            formState.eFatura[0]?.stockCardPriceListId || ''
+                          )}
+                          placeholder="Ürün kodunu giriniz"
+                        />
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              <TabsContent value="resmi-fatura" className="h-[calc(100%-3rem)] overflow-auto">
-                <Card className="h-auto">
-                  <CardContent className="pt-6">
-                    <div className="space-y-6">
-                      <div>
-                        <h3 className="text-lg font-semibold mb-4">Resmi Fatura</h3>
-                        <div className="space-y-4">
-                          <div>
-                            <Label htmlFor="faturaAd">Fatura Ad</Label>
-                            <Input
-                              id="faturaAd"
-                              value={faturaAd}
-                              onChange={(e) => setFaturaAd(e.target.value)}
-                            />
-                          </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-                          <div className="grid grid-cols-3 gap-4">
-                            <div>
-                              <Label htmlFor="satisFiyat">Satış Fiyat TRY</Label>
-                              <Input
-                                id="satisFiyat"
-                                value={satisFiyat}
-                                onChange={(e) => setSatisFiyat(e.target.value)}
-                                className="text-right"
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor="satisFiyatKdv">Satış Fiyat (KDV'li) TRY</Label>
-                              <Input
-                                id="satisFiyatKdv"
-                                value={satisFiyatKdv}
-                                onChange={(e) => setSatisFiyatKdv(e.target.value)}
-                                className="text-right"
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor="kdv">Kdv</Label>
-                              <Input
-                                id="kdv"
-                                value={kdvOrani}
-                                onChange={(e) => setKdvOrani(e.target.value)}
-                                className="text-right"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              <TabsContent value="ozellikler" className="h-[calc(100%-3rem)] overflow-auto">
-                <StockProperties />
-              </TabsContent>
-              <TabsContent value="varyasyonlar" className="h-[calc(100%-3rem)] overflow-auto">
-                <Card className="h-auto">
-                  <CardContent className="p-6">
-                    <h3 className="text-xl font-semibold mb-4">Varyantlar</h3>
-                    <p>Varyantlar eklemek için stok formunu kayıt ediniz.</p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              <TabsContent value="uretciler" className="h-[calc(100%-3rem)] overflow-auto">
-                <StockManufacturers />
-              </TabsContent>
-              <TabsContent value="birimler" className="h-[calc(100%-3rem)] overflow-auto">
-                <StockUnits />
-              </TabsContent>
-              <TabsContent value="sube" className="h-[calc(100%-3rem)] overflow-auto">
-                <StockBranch />
-              </TabsContent>
-              <TabsContent value="pazaryeri" className="h-[calc(100%-3rem)] overflow-auto">
-                <Card className="h-auto">
-                  <CardContent className="p-6">
-                    <h3 className="text-xl font-semibold mb-4">Pazaryerleri</h3>
-                    <p>Pazaryeri işlemleri yapabilmek için stok formunu kayıt ediniz.</p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              <TabsContent value="hareket" className="h-[calc(100%-3rem)] overflow-auto">
-                <Card className="h-auto">
-                  <CardContent className="p-6">
-                    <h3 className="text-xl font-semibold mb-4">Hareketler</h3>
-                    <p>Stok hareketlerini görmek için stok formunu kayıt ediniz.</p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-        </div>
+          <TabsContent value="ozellikler">
+            <StockProperties />
+          </TabsContent>
+
+          <TabsContent value="uretciler">
+            <StockManufacturers />
+          </TabsContent>
+
+          <TabsContent value="birimler">
+            <StockUnits />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

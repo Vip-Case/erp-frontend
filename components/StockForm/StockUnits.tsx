@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import DataGrid, {
     Column,
     Export,
@@ -18,62 +18,27 @@ import { Workbook } from 'exceljs';
 import { saveAs } from 'file-saver-es';
 import { exportDataGrid } from 'devextreme/excel_exporter';
 import { Card, CardContent } from '@/components/ui/card';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle, Loader2 } from 'lucide-react';
+import { usePriceLists } from './hooks/usePriceLists';
+import { useStockForm } from './hooks/useStockForm';
 
 interface StockUnit {
     id: number;
-    group: string;
-    unit: string;
-    ratio: number;
-    value: number;
-    priceType: string;
-    salePriceIncludeVat: number;
-    salePriceExcludeVat: number;
-    purchasePriceIncludeVat: number;
-    purchasePriceExcludeVat: number;
+    priceListId: string;
+    vatRate: number | null;
+    price: number;
+    priceWithVat: number | null;
     barcode: string;
 }
-
-const priceTypes = [
-    { id: 'fixedPrice', name: 'Sabit Fiyat' },
-    { id: 'addAmountSale', name: 'Tutar Ekle (Satış Fiyatına)' },
-    { id: 'addRateSale', name: 'Oran Ekle (Satış Fiyatına)' },
-    { id: 'addAmountPurchase', name: 'Tutar Ekle (Alış Fiyatına)' },
-    { id: 'addRatePurchase', name: 'Oran Ekle (Alış Fiyatına)' },
-];
-
-const groups = [
-    { id: 'retail', name: 'Dış Müşteri' },
-    { id: 'wholesale', name: 'TOPTAN' },
-    { id: 'cashPrice', name: 'Özel Fiyat' },
-    { id: 'installmentPrice', name: 'Taban Fiyat' },
-];
-
-const units = [
-    { id: 'piece', name: 'Koli' },
-    { id: 'box', name: 'Adet' },
-    { id: 'kg', name: 'KG' },
-];
 
 const generateBarcode = () => {
     return Math.floor(Math.random() * 9000000000000) + 1000000000000;
 };
 
-const defaultNewRow = {
-    group: 'retail',
-    unit: 'piece',
-    ratio: 1,
-    value: 100.00,
-    priceType: 'fixedPrice',
-    salePriceIncludeVat: 100.00,
-    salePriceExcludeVat: 83.33,
-    purchasePriceIncludeVat: 0.00,
-    purchasePriceExcludeVat: 0.00,
-    barcode: generateBarcode().toString(),
-};
-
 const onExporting = (e: any) => {
     const workbook = new Workbook();
-    const worksheet = workbook.addWorksheet('Main sheet');
+    const worksheet = workbook.addWorksheet('Birimler');
 
     exportDataGrid({
         component: e.component,
@@ -87,39 +52,100 @@ const onExporting = (e: any) => {
 };
 
 const StockUnits: React.FC = () => {
-    const renderPriceIndicators = () => {
+    const { priceLists, loading, error } = usePriceLists();
+    const { formState, updatePriceListItems } = useStockForm();
+    const [units, setUnits] = React.useState<StockUnit[]>([]);
+
+    useEffect(() => {
+        // Initialize units from formState if available, otherwise from priceLists
+        if (formState.priceListItems.length > 0) {
+            setUnits(formState.priceListItems.map((item, index) => ({
+                id: index + 1,
+                priceListId: item.priceListId,
+                vatRate: item.vatRate,
+                price: item.price,
+                priceWithVat: item.priceWithVat,
+                barcode: item.barcode
+            })));
+        } else if (priceLists.length > 0) {
+            const initialUnits = priceLists.map((priceList, index) => ({
+                id: index + 1,
+                priceListId: priceList.id,
+                vatRate: priceList.isVatIncluded ? 20 : null,
+                price: 0,
+                priceWithVat: priceList.isVatIncluded ? 0 : null,
+                barcode: generateBarcode().toString(),
+            }));
+            setUnits(initialUnits);
+            updatePriceListItems(initialUnits);
+        }
+    }, [priceLists, formState.priceListItems]);
+
+    const calculatePriceWithVat = (price: number, vatRate: number) => {
+        return price * (1 + vatRate / 100);
+    };
+
+    const onEditorPreparing = (e: any) => {
+        if (!e?.dataField || !e?.row?.data?.priceListId) {
+            return;
+        }
+
+        const priceList = priceLists.find(pl => pl.id === e.row.data.priceListId);
+
+        if (e.dataField === 'vatRate') {
+            if (e.editorOptions) {
+                e.editorOptions.disabled = !priceList?.isVatIncluded;
+            }
+        }
+    };
+
+    const onCellValueChanged = (e: any) => {
+        if (!e?.data?.id || !e?.dataField) {
+            return;
+        }
+
+        const updatedUnits = units.map(unit => {
+            if (unit.id === e.data.id) {
+                const priceList = priceLists.find(pl => pl.id === unit.priceListId);
+                const updatedUnit = { ...unit, [e.dataField]: e.value };
+
+                if (priceList?.isVatIncluded && updatedUnit.vatRate !== null) {
+                    if (e.dataField === 'price' || e.dataField === 'vatRate') {
+                        updatedUnit.priceWithVat = calculatePriceWithVat(updatedUnit.price, updatedUnit.vatRate);
+                    }
+                }
+
+                return updatedUnit;
+            }
+            return unit;
+        });
+
+        setUnits(updatedUnits);
+        updatePriceListItems(updatedUnits);
+    };
+
+    if (loading) {
         return (
-            <div className="flex items-center gap-4">
-                <div className="bg-destructive text-destructive-foreground px-4 py-2 rounded-md whitespace-nowrap">
-                    ↓ 0,00 • %20 Kdv = 0,00
-                </div>
-                <div className="bg-[#68B92E] text-white px-4 py-2 rounded-md whitespace-nowrap">
-                    ↑ 83,33 • %20 Kdv = 100,00
-                </div>
+            <div className="flex items-center justify-center h-32">
+                <Loader2 className="h-6 w-6 animate-spin" />
             </div>
         );
-    };
+    }
 
-    const customizePriceCell = (cellData: any) => {
-        const value = parseFloat(cellData.value);
-        return {
-            text: value.toLocaleString('tr-TR', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-            }),
-            color: value > 0 ? '#059669' : '#DC2626',
-        };
-    };
-
-    const onInitNewRow = (e: any) => {
-        e.data = { ...defaultNewRow };
-    };
+    if (error) {
+        return (
+            <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+            </Alert>
+        );
+    }
 
     return (
         <Card>
             <CardContent className="pt-6">
                 <DataGrid
-                    dataSource={[]}
+                    dataSource={units}
                     showBorders={true}
                     showRowLines={true}
                     showColumnLines={true}
@@ -127,7 +153,8 @@ const StockUnits: React.FC = () => {
                     columnAutoWidth={true}
                     wordWrapEnabled={true}
                     onExporting={onExporting}
-                    onInitNewRow={onInitNewRow}
+                    onCellHoverChanged={onCellValueChanged}
+                    onEditorPreparing={onEditorPreparing}
                 >
                     <Selection mode="multiple" />
                     <FilterRow visible={true} />
@@ -137,128 +164,80 @@ const StockUnits: React.FC = () => {
                     <Editing
                         mode="cell"
                         allowUpdating={true}
-                        allowAdding={true}
                         allowDeleting={true}
                     />
-
-                    <Toolbar>
-                        <Item name="addRowButton" location="before" showText="always" />
-                        <Item location="before" render={renderPriceIndicators} />
-                        <Item name="exportButton" location="after" />
-                        <Item name="columnChooserButton" location="after" />
-                    </Toolbar>
 
                     <Column type="buttons" width={70} caption="Sil">
                         <DxButton name="delete" />
                     </Column>
-                    <Column caption="Tanımlar" alignment='center'>
-                        <Column
-                            dataField="group"
-                            caption="Grup"
-                            allowEditing={true}
-                        >
-                            <Lookup dataSource={groups} valueExpr="id" displayExpr="name" />
-                        </Column>
 
-                        <Column
-                            dataField="unit"
-                            caption="Birim"
-                            allowEditing={true}
-                        >
-                            <Lookup dataSource={units} valueExpr="id" displayExpr="name" />
-                        </Column>
-
-                        <Column
-                            dataField="ratio"
-                            caption="Çarpan"
-                            dataType="number"
-                            format="#,##0.##"
-                            allowEditing={true}
-                        />
-
-                        <Column
-                            dataField="value"
-                            caption="Değer"
-                            dataType="number"
-                            format="#,##0.00"
-                            allowEditing={true}
-                        />
-
-                        <Column
-                            dataField="priceType"
-                            caption="Fiyat Tipi"
-                            allowEditing={true}
-                        >
-                            <Lookup dataSource={priceTypes} valueExpr="id" displayExpr="name" />
-                        </Column>
-                    </Column>
-                    <Column caption="Satış Fiyatı" alignment='center'>
-                        <Column
-                            dataField="salePriceIncludeVat"
-                            caption="Kdv Dahil"
-                            dataType="number"
-                            allowEditing={true}
-                            cellRender={(cellData) => {
-                                const style = customizePriceCell(cellData);
-                                return (
-                                    <span style={{ color: style.color, fontWeight: 500 }}>
-                                        {style.text}
-                                    </span>
-                                );
-                            }}
-                        />
-
-                        <Column
-                            dataField="salePriceExcludeVat"
-                            caption="Kdv Hariç"
-                            dataType="number"
-                            allowEditing={true}
-                            cellRender={(cellData) => {
-                                const style = customizePriceCell(cellData);
-                                return (
-                                    <span style={{ color: style.color, fontWeight: 500 }}>
-                                        {style.text}
-                                    </span>
-                                );
-                            }}
+                    <Column
+                        dataField="priceListId"
+                        caption="Fiyat Listesi"
+                        allowEditing={false}
+                    >
+                        <Lookup
+                            dataSource={priceLists}
+                            valueExpr="id"
+                            displayExpr={(item: any) =>
+                                `${item.priceListName} (${item.currency})${item.isVatIncluded ? ' - KDV Dahil' : ''}`
+                            }
                         />
                     </Column>
-                    <Column caption="Alış Fiyatı" alignment='center'>
-                        <Column
-                            dataField="purchasePriceIncludeVat"
-                            caption="Kdv Dahil"
-                            dataType="number"
-                            allowEditing={true}
-                            cellRender={(cellData) => {
-                                const style = customizePriceCell(cellData);
-                                return (
-                                    <span style={{ color: style.color, fontWeight: 500 }}>
-                                        {style.text}
-                                    </span>
-                                );
-                            }}
-                        />
 
-                        <Column
-                            dataField="purchasePriceExcludeVat"
-                            caption="Kdv Hariç"
-                            dataType="number"
-                            allowEditing={true}
-                            cellRender={(cellData) => {
-                                const style = customizePriceCell(cellData);
-                                return (
-                                    <span style={{ color: style.color, fontWeight: 500 }}>
-                                        {style.text}
-                                    </span>
-                                );
-                            }}
-                        />
-                    </Column>
+                    <Column
+                        dataField="price"
+                        caption="Fiyat"
+                        dataType="number"
+                        format="#,##0.00"
+                        allowEditing={true}
+                    />
+
+                    <Column
+                        dataField="vatRate"
+                        caption="KDV (%)"
+                        dataType="number"
+                        format="#,##0"
+                        allowEditing={true}
+                        visible={true}
+                        calculateCellValue={(rowData: StockUnit) => {
+                            const priceList = priceLists.find(pl => pl.id === rowData.priceListId);
+                            return priceList?.isVatIncluded ? rowData.vatRate : null;
+                        }}
+                        cellRender={(cellData: any) => {
+                            const priceList = priceLists.find(pl => pl.id === cellData.data.priceListId);
+                            return priceList?.isVatIncluded ? cellData.value?.toString() || '0' : '';
+                        }}
+                    />
+
+                    <Column
+                        dataField="priceWithVat"
+                        caption="KDV Dahil Fiyat"
+                        dataType="number"
+                        format="#,##0.00"
+                        allowEditing={false}
+                        calculateCellValue={(rowData: StockUnit) => {
+                            const priceList = priceLists.find(pl => pl.id === rowData.priceListId);
+                            if (!priceList?.isVatIncluded || rowData.vatRate === null) return null;
+                            return calculatePriceWithVat(rowData.price, rowData.vatRate);
+                        }}
+                        cellRender={(cellData: any) => {
+                            const priceList = priceLists.find(pl => pl.id === cellData.data.priceListId);
+                            if (!priceList?.isVatIncluded) return '';
+                            return cellData.value?.toFixed(2) || '0.00';
+                        }}
+                    />
+
                     <Column
                         dataField="barcode"
                         caption="Barkod"
                         allowEditing={true}
                     />
+
+                    <Toolbar>
+                        <Item name="exportButton" location="after" />
+                        <Item name="columnChooserButton" location="after" />
+                    </Toolbar>
                 </DataGrid>
             </CardContent>
         </Card>
